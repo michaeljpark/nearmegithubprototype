@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NearMe – Grocery Price Comparison</title>
+  <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="app">
+
+    <!-- ═══ HEADER ═══ -->
+    <header class="app-header">
+      <div class="header-logo">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z" fill="#E31837"/>
+        </svg>
+        <span>NearMe</span>
+      </div>
+
+      <button class="header-location" id="location-btn">
+        <svg width="12" height="15" viewBox="0 0 13 17" fill="none">
+          <path d="M6.5 0C3.46 0 1 2.46 1 5.5c0 4.13 5.5 11 5.5 11S12 9.63 12 5.5C12 2.46 9.54 0 6.5 0zm0 7.5A2 2 0 1 1 6.5 3.5a2 2 0 0 1 0 4z" fill="currentColor"/>
+        </svg>
+        <span id="location-text">Toronto, ON</span>
+        <svg width="9" height="5" viewBox="0 0 10 6" fill="none">
+          <path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+
+      <div class="header-search">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+          <circle cx="11" cy="11" r="7.5" stroke="#9E9E9E" stroke-width="2"/>
+          <path d="M20 20l-3.5-3.5" stroke="#9E9E9E" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <input type="text" id="global-search" placeholder="Search groceries, stores…" autocomplete="off">
+      </div>
+
+      <nav class="header-nav">
+        <button class="hnav active" data-panel="panel-home">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M3 12L12 3l9 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M5 10v11h5v-6h4v6h5V10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Home
+        </button>
+        <button class="hnav" data-panel="panel-list">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" stroke="currentColor" stroke-width="2"/><rect x="9" y="3" width="6" height="4" rx="1" stroke="currentColor" stroke-width="2"/><path d="M9 12h6M9 16h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          My List
+        </button>
+        <button class="hnav" data-panel="panel-profile">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2"/></svg>
+          Profile
+        </button>
+      </nav>
+    </header>
+
+    <!-- ═══ BODY ═══ -->
+    <div class="app-body">
+
+      <!-- LEFT PANEL -->
+      <aside class="side-panel" id="side-panel">
+
+        <!-- HOME -->
+        <div class="pview active" id="panel-home">
+          <div class="pscroll">
+            <div class="chip-row" id="home-chips">
+              <button class="chip active" data-filter="favourite">
+                <svg width="11" height="10" viewBox="0 0 24 22" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                Favourite
+              </button>
+              <button class="chip" data-filter="deals">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M21.41 11.58l-9-9A2 2 0 0 0 11 2H4a2 2 0 0 0-2 2v7c0 .55.22 1.05.59 1.42l9 9A2 2 0 0 0 13 22a2 2 0 0 0 1.41-.59l7-7a2 2 0 0 0 0-2.83zM5.5 7A1.5 1.5 0 1 1 7 5.5 1.5 1.5 0 0 1 5.5 7z"/></svg>
+                Deals
+              </button>
+              <button class="chip" data-filter="vegetable">Vegetable</button>
+              <button class="chip" data-filter="meat">Meat</button>
+              <button class="chip" data-filter="soft-drinks">Soft drinks</button>
+            </div>
+
+            <div class="stores-section">
+              <div class="sec-label">Nearby Stores <span class="stores-count" id="stores-count"></span></div>
+              <div class="stores-logos" id="stores-logos">
+                <div class="store-skel"></div><div class="store-skel"></div>
+                <div class="store-skel"></div><div class="store-skel"></div>
+              </div>
+            </div>
+
+            <div class="sec-label" style="padding:16px 16px 8px">You might like</div>
+            <div class="pgrid" id="home-products"></div>
+          </div>
+        </div>
+
+        <!-- SEARCH RESULTS -->
+        <div class="pview" id="panel-search">
+          <div class="search-pane-header">
+            <button class="back-btn" id="search-back">
+              <svg width="7" height="12" viewBox="0 0 7 12" fill="none"><path d="M6 1L1 6l5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Back
+            </button>
+            <span id="search-label" class="search-label-txt">Results</span>
+          </div>
+          <div class="sort-tabs">
+            <button class="stab active" data-sort="price">Low Price</button>
+            <button class="stab" data-sort="deals">Deals</button>
+            <button class="stab" data-sort="brands">Brands</button>
+          </div>
+          <div class="search-list" id="search-results"></div>
+        </div>
+
+        <!-- MY LIST -->
+        <div class="pview" id="panel-list">
+          <div class="pscroll">
+            <div class="list-hdr">
+              <svg width="19" height="22" viewBox="0 0 22 26" fill="none"><rect x="1" y="3" width="20" height="22" rx="2" stroke="#1A1A1A" stroke-width="1.8"/><path d="M7 1v4M15 1v4" stroke="#1A1A1A" stroke-width="1.8" stroke-linecap="round"/><path d="M6 12h10M6 17h6" stroke="#1A1A1A" stroke-width="1.8" stroke-linecap="round"/></svg>
+              <div>
+                <div class="list-title">Your List</div>
+                <div class="list-date" id="list-date"></div>
+              </div>
+            </div>
+            <div class="list-grp">
+              <div class="list-badge metro">metro</div>
+              <div id="list-metro"></div>
+            </div>
+            <div class="list-grp">
+              <div class="list-badge nofrills">NO FRILLS</div>
+              <div id="list-nofrills"></div>
+            </div>
+            <div class="list-summary">
+              <span class="save-txt">SAVE: <b>$20<sup>**</sup></b></span>
+              <span class="total-txt">Total: <b>$30<sup>**</sup></b></span>
+            </div>
+            <div class="sec-label" style="padding:16px 16px 8px">You might like</div>
+            <div class="pgrid" id="list-products"></div>
+          </div>
+        </div>
+
+        <!-- PROFILE -->
+        <div class="pview" id="panel-profile">
+          <div class="pscroll">
+            <div class="profile-hero">
+              <div class="profile-av">JD</div>
+              <div class="profile-name">John Doe</div>
+              <div class="profile-loc">
+                <svg width="10" height="13" viewBox="0 0 13 17" fill="none"><path d="M6.5 0C3.46 0 1 2.46 1 5.5c0 4.13 5.5 11 5.5 11S12 9.63 12 5.5C12 2.46 9.54 0 6.5 0zm0 7.5A2 2 0 1 1 6.5 3.5a2 2 0 0 1 0 4z" fill="#888"/></svg>
+                M5T 3A1
+              </div>
+              <div class="profile-btns">
+                <button class="pbtn"><svg width="16" height="14" viewBox="0 0 24 22" fill="#1A1A1A"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>Favourites</button>
+                <button class="pbtn" onclick="showPanel('panel-list')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2"/><path d="M8 8h8M8 12h8M8 16h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Past Lists</button>
+                <button class="pbtn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" stroke-width="2"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="2"/></svg>Edit</button>
+              </div>
+            </div>
+            <div class="pmenu">
+              <div class="pm-item"><svg width="17" height="19" viewBox="0 0 20 22" fill="none"><path d="M10 22c1.1 0 2-.9 2-2H8c0 1.1.9 2 2 2zm6-6V10c0-3.07-1.64-5.64-4.5-6.32V3a1.5 1.5 0 0 0-3 0v.68C5.63 4.36 4 6.92 4 10v6l-2 2v1h16v-1l-2-2z" fill="#333"/></svg><span>Notification Setting</span><svg width="6" height="11" viewBox="0 0 7 12" fill="none"><path d="M1 1l5 5-5 5" stroke="#CCC" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+              <div class="pm-item"><svg width="17" height="19" viewBox="0 0 24 24" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="#333" stroke-width="2" stroke-linecap="round"/></svg><span>Privacy</span><svg width="6" height="11" viewBox="0 0 7 12" fill="none"><path d="M1 1l5 5-5 5" stroke="#CCC" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+              <div class="pm-item"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#333" stroke-width="2"/><path d="M12 8v4M12 16h.01" stroke="#333" stroke-width="2" stroke-linecap="round"/></svg><span>About</span><svg width="6" height="11" viewBox="0 0 7 12" fill="none"><path d="M1 1l5 5-5 5" stroke="#CCC" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+              <div class="pm-item"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#333" stroke-width="2"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3M12 17h.01" stroke="#333" stroke-width="2" stroke-linecap="round"/></svg><span>Help</span><svg width="6" height="11" viewBox="0 0 7 12" fill="none"><path d="M1 1l5 5-5 5" stroke="#CCC" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+            </div>
+          </div>
+        </div>
+
+      </aside>
+
+      <!-- MAP -->
+      <section class="map-wrap" id="map-wrap">
+        <div class="map-topbar">
+          <div class="map-chips" id="map-chips">
+            <button class="chip active" data-mfilter="all">All</button>
+            <button class="chip" data-mfilter="metro">Metro</button>
+            <button class="chip" data-mfilter="loblaws">Loblaws</button>
+            <button class="chip" data-mfilter="nofrills">No Frills</button>
+            <button class="chip" data-mfilter="deals">Deals</button>
+          </div>
+          <div class="map-status-bar">
+            <span id="map-status">Loading stores…</span>
+          </div>
+        </div>
+        <div id="map"></div>
+        <!-- Store card -->
+        <div class="store-card hidden" id="store-card">
+          <button class="card-close" id="card-close">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="#888" stroke-width="2.5" stroke-linecap="round"/></svg>
+          </button>
+          <div id="card-body"></div>
+        </div>
+      </section>
+    </div>
+
+    <!-- MOBILE NAV -->
+    <nav class="mobile-nav">
+      <button class="mnav active" data-panel="panel-home" data-show="panel">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none"><path d="M3 12L12 3l9 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M5 10v11h5v-6h4v6h5V10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>Home</span>
+      </button>
+      <button class="mnav" data-show="map">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><line x1="8" y1="2" x2="8" y2="18" stroke="currentColor" stroke-width="2"/><line x1="16" y1="6" x2="16" y2="22" stroke="currentColor" stroke-width="2"/></svg>
+        <span>Map</span>
+      </button>
+      <button class="mnav" data-panel="panel-list" data-show="panel">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" stroke="currentColor" stroke-width="2"/><rect x="9" y="3" width="6" height="4" rx="1" stroke="currentColor" stroke-width="2"/><path d="M9 12h6M9 16h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <span>List</span>
+      </button>
+      <button class="mnav" data-panel="panel-profile" data-show="panel">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2"/></svg>
+        <span>Profile</span>
+      </button>
+    </nav>
+
+  </div>
+
+  <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
