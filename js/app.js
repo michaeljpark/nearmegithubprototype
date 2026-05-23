@@ -3,6 +3,13 @@ const CENTER      = [-79.3832, 43.6532];   // [lng, lat] Toronto downtown
 const RADIUS_M    = 4000;                  // 4 km
 const SPOTLIGHT_M = 200;                   // 3D building spotlight radius
 
+const CHAIN_LOGOS = {
+  metro:    'icons/metro.png',
+  loblaws:  'icons/loblaws.png',
+  nofrills: 'icons/nofrills.png',
+  tandt:    'icons/tnt.png',
+};
+
 /* ─── MAP ─── */
 let map = null;
 let userMarker = null;            // single instance, no duplicates
@@ -104,6 +111,10 @@ function initMap() {
   map.on('load', () => {
     addRadiusCircle();
     add3DBuildingLayer();
+    is3D = true;
+    ctrl3DRef?.setActive(true);
+    map.easeTo({ pitch: 55, bearing: -20, zoom: 15.5, duration: 1200 });
+    map.setPaintProperty('3d-buildings', 'fill-extrusion-opacity', 0.9);
     fetchStoresFromOverpass();
     tryGeolocation();
   });
@@ -175,16 +186,16 @@ function add3DBuildingLayer() {
       'fill-extrusion-color': [
         'interpolate', ['linear'],
         ['coalesce', ['get', 'render_height'], 0],
-        0,   '#F0EFEC',
-        10,  '#E8E6E0',
-        30,  '#D9D6CC',
-        60,  '#C8C4B8',
-        100, '#B0ABA0',
-        200, '#98938A',
+        0,   '#FFFFFF',
+        10,  '#F7F6F4',
+        30,  '#F0EDE8',
+        60,  '#E8E4DC',
+        100, '#DDD8D0',
+        200, '#D0C8C0',
       ],
       'fill-extrusion-height':      ['coalesce', ['get', 'render_height'],    0],
       'fill-extrusion-base':        ['coalesce', ['get', 'render_min_height'],0],
-      'fill-extrusion-opacity':     0,   // hidden by default; shown in 3D mode
+      'fill-extrusion-opacity':     0,   // set to 0.9 after auto-enable
     }
   }, labelLayerId ?? undefined);
 }
@@ -643,29 +654,54 @@ document.addEventListener('DOMContentLoaded', () => {
       renderHomeProducts(chip.dataset.filter);
     });
   });
+
+  // Mobile map overlay: sync chips and search with home panel
+  document.querySelectorAll('#map-home-chips .chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('#map-home-chips .chip').forEach(c => c.classList.remove('active'));
+      document.querySelectorAll('#home-chips .chip').forEach(c => {
+        c.classList.toggle('active', c.dataset.filter === chip.dataset.filter);
+      });
+      chip.classList.add('active');
+      renderHomeProducts(chip.dataset.filter);
+    });
+  });
+
+  const mapSearchInput = document.getElementById('map-search-input');
+  mapSearchInput?.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && mapSearchInput.value.trim()) {
+      doSearch(mapSearchInput.value.trim());
+      mapSearchInput.value = '';
+    }
+  });
 });
 
 /* ─── STORE LOGOS ─── */
 function renderStoreLogos(stores) {
-  const container = document.getElementById('stores-logos');
   const seen = new Set();
   const pills = [];
-
   stores.forEach(s => {
-    if (!seen.has(s.chain)) {
-      seen.add(s.chain);
-      pills.push(s);
-    }
+    if (!seen.has(s.chain)) { seen.add(s.chain); pills.push(s); }
   });
 
-  container.innerHTML = pills.slice(0, 10).map(s => {
+  const html = pills.slice(0, 10).map(s => {
     const cfg = CHAIN_CONFIG[s.chain] || CHAIN_CONFIG.other;
+    const logoSrc = CHAIN_LOGOS[s.chain];
+    const circleInner = logoSrc
+      ? `<img src="${logoSrc}" alt="${cfg.short}">`
+      : `<span>${cfg.short}</span>`;
+    const hasLogo = logoSrc ? ' has-logo' : '';
     return `
       <div class="store-pill" onclick="focusStore(${s.lng}, ${s.lat}, '${s.chain}')">
-        <div class="store-circle sc-${s.chain}"><span>${cfg.short}</span></div>
+        <div class="store-circle sc-${s.chain}${hasLogo}">${circleInner}</div>
         <div class="store-pill-name">${cfg.label}</div>
       </div>`;
   }).join('');
+
+  const desktop = document.getElementById('stores-logos');
+  if (desktop) desktop.innerHTML = html;
+  const mobile = document.getElementById('mobile-stores-logos');
+  if (mobile) mobile.innerHTML = html;
 }
 
 window.focusStore = function(lng, lat, chain) {

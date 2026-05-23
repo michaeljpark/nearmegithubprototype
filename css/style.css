@@ -6,6 +6,8 @@
   .home-hero   { padding: 56px 16px 0 !important; }
   .hero-loc    { display: flex !important; }
   .hero-search { display: flex !important; margin-bottom: 12px; }
+  .map-topbar  { display: none !important; }
+  .map-wrap.show .mobile-map-hero { display: block; }
 }
 
 /* Desktop: header visible, hero loc+search hidden, chips plain white */
@@ -49,11 +51,11 @@
 
 .hero-search {
   background: #fff;
-  border-radius: 14px;
+  border-radius: 100px;
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 13px 16px;
+  padding: 8px 14px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 .hero-search input {
@@ -169,6 +171,28 @@
   border: none;
 }
 .feat-btn--nf { background: #1a1a1a; color: #FFD600; }
+
+/* ─── MOBILE MAP HERO OVERLAY ─── */
+.mobile-map-hero {
+  display: none;
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  z-index: 30;
+  padding: 94px 16px 0;
+  background: none;
+  pointer-events: none;
+}
+.mobile-map-hero .hero-search,
+.mobile-map-hero .chip-row { pointer-events: auto; }
+.mobile-map-hero .chip-row {
+  background: transparent;
+  border-bottom: none;
+  padding: 8px 0 0;
+}
+
+/* ─── MOBILE STORES SECTION ─── */
+.mobile-stores-section { display: block; }
+@media (min-width: 640px) { .mobile-stores-section { display: none; } }
 
 /* ─── HOME SECTION TITLE ─── */
 .home-sec-title {
@@ -375,7 +399,7 @@ body {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 7px 14px;
+  padding: 5px 12px;
   border: 1.5px solid #D0D0D0;
   border-radius: 24px;
   font-size: 13px;
@@ -431,6 +455,8 @@ body {
 }
 .store-pill:hover .store-circle { transform: scale(1.08); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
 .store-pill-name { font-size: 10px; color: var(--text2); max-width: 56px; text-align: center; line-height: 1.2; }
+.store-circle img { width: 34px; height: 34px; object-fit: contain; }
+.store-circle.has-logo { background: #fff; border-color: var(--border); }
 
 /* Chain colors */
 .sc-metro    { background: #fff; color: #E31837; border-color: #E31837; }
