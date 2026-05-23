@@ -1,3 +1,172 @@
+/* ─── HOME REDESIGN ─── */
+.app-header { display: none; }
+
+.home-hero {
+  background: linear-gradient(to bottom, #36A05B 0%, #36A05B 78%, rgba(54,160,91,0) 100%);
+  padding: 52px 16px 0;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 10;
+}
+
+.hero-loc {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 14px;
+  letter-spacing: -0.2px;
+}
+
+.hero-search {
+  background: #fff;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+.hero-search input {
+  flex: 1;
+  font-size: 15px;
+  color: #333;
+}
+.hero-search input::placeholder { color: #9E9E9E; }
+
+.home-hero .chip-row {
+  background: transparent;
+  border-bottom: none;
+  padding: 12px 0 18px;
+}
+.home-hero .chip {
+  background: rgba(255,255,255,0.22);
+  border-color: transparent;
+  color: #fff;
+  font-weight: 600;
+}
+.home-hero .chip.active {
+  background: #fff;
+  border-color: #fff;
+  color: #1a1a1a;
+}
+.home-hero .chip svg { opacity: 0.85; }
+
+/* ─── FEATURED PROMO CARDS ─── */
+.feat-scroll {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 4px 16px 16px;
+  scroll-snap-type: x mandatory;
+}
+.feat-scroll::-webkit-scrollbar { display: none; }
+
+.feat-card {
+  flex-shrink: 0;
+  width: 265px;
+  border-radius: 20px;
+  padding: 18px 18px 16px;
+  scroll-snap-align: start;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.feat-card--metro { background: #C41230; color: #fff; }
+.feat-card--nofrills { background: #FFD600; color: #1a1a1a; }
+
+.feat-exclaims {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  opacity: 0.6;
+  margin-bottom: 4px;
+}
+
+.feat-title {
+  font-size: 28px;
+  font-weight: 900;
+  line-height: 1.05;
+  font-style: italic;
+  margin-bottom: 2px;
+}
+.feat-days { font-size: 18px; font-style: italic; }
+
+.feat-title--nf { font-size: 22px; font-style: normal; font-weight: 900; }
+
+.feat-brand {
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+  opacity: 0.7;
+}
+
+.feat-imgs {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  margin: 6px 0;
+}
+.feat-emoji { font-size: 30px; }
+.feat-emoji--big { font-size: 44px; }
+
+.feat-price {
+  font-size: 52px;
+  font-weight: 900;
+  line-height: 1;
+  margin: 4px 0 6px;
+}
+.feat-price sup { font-size: 26px; vertical-align: super; }
+.feat-price--nf { font-size: 44px; }
+
+.feat-desc {
+  font-size: 10.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  opacity: 0.85;
+  line-height: 1.45;
+  margin-bottom: 14px;
+  flex: 1;
+}
+
+.feat-btn {
+  display: block;
+  background: #fff;
+  color: #1a1a1a;
+  border-radius: 24px;
+  padding: 11px 0;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  width: 100%;
+  cursor: pointer;
+  border: none;
+}
+.feat-btn--nf { background: #1a1a1a; color: #FFD600; }
+
+/* ─── HOME SECTION TITLE ─── */
+.home-sec-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text1);
+  padding: 14px 16px 8px;
+}
+
+/* ─── STORES SECTION (home) ─── */
+.stores-section { padding: 12px 0 4px; }
+.stores-logos {
+  display: flex;
+  gap: 10px;
+  padding: 4px 16px 8px;
+  overflow-x: auto;
+}
+.stores-logos::-webkit-scrollbar { display: none; }
+
 /* ── RESET ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 button { cursor: pointer; border: none; background: none; font-family: inherit; }
@@ -186,31 +355,11 @@ body {
 .chip:hover:not(.active) { background: var(--bg); }
 
 /* ─── STORES SECTION ─── */
-.stores-section {
-  padding: 12px 0 6px;
-  border-bottom: 1px solid var(--border);
-}
-.sec-label {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text2);
-  padding: 0 14px 8px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.stores-count {
-  background: var(--red);
-  color: #fff;
-  font-size: 10px;
-  font-weight: 700;
-  padding: 1px 6px;
-  border-radius: 10px;
-}
+.stores-section { padding: 12px 0 4px; }
 .stores-logos {
   display: flex;
   gap: 10px;
-  padding: 0 14px 6px;
+  padding: 4px 16px 8px;
   overflow-x: auto;
 }
 .stores-logos::-webkit-scrollbar { display: none; }

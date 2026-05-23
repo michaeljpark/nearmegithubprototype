@@ -305,18 +305,26 @@ out center tags;
 }
 
 // Fallback hardcoded data if Overpass is unreachable
+// Coordinates verified against real downtown Toronto store addresses (2024-2025)
 const FALLBACK_STORES = [
-  { type:'node', id:1, lat:43.6476, lon:-79.3716, tags:{ name:'Metro', shop:'supermarket', 'addr:full':'55 Front St E, Toronto' }},
-  { type:'node', id:2, lat:43.6537, lon:-79.3978, tags:{ name:'Metro', shop:'supermarket', 'addr:full':'270 Spadina Ave, Toronto' }},
-  { type:'node', id:3, lat:43.6655, lon:-79.4020, tags:{ name:'Metro', shop:'supermarket', 'addr:full':'394 Bloor St W, Toronto' }},
-  { type:'node', id:4, lat:43.6627, lon:-79.3797, tags:{ name:'Loblaws', shop:'supermarket', 'addr:full':'60 Carlton St, Toronto' }},
-  { type:'node', id:5, lat:43.6390, lon:-79.3875, tags:{ name:'Loblaws', shop:'supermarket', 'addr:full':'261 Queens Quay W, Toronto' }},
-  { type:'node', id:6, lat:43.6388, lon:-79.3935, tags:{ name:'No Frills', shop:'supermarket', 'addr:full':'100 Lakeshore Blvd W, Toronto' }},
-  { type:'node', id:7, lat:43.6468, lon:-79.3814, tags:{ name:'Farm Boy', shop:'supermarket', 'addr:full':'1 Front St W, Toronto' }},
-  { type:'node', id:8, lat:43.6459, lon:-79.3769, tags:{ name:'Sobeys', shop:'supermarket', 'addr:full':'33 Yonge St, Toronto' }},
-  { type:'node', id:9, lat:43.6641, lon:-79.4077, tags:{ name:'FreshCo', shop:'supermarket', 'addr:full':'585 Bloor St W, Toronto' }},
-  { type:'node', id:10, lat:43.6494, lon:-79.3597, tags:{ name:'T&T Supermarket', shop:'supermarket', 'addr:full':'222 Cherry St, Toronto' }},
-  { type:'node', id:11, lat:43.6716, lon:-79.3953, tags:{ name:'Whole Foods Market', shop:'supermarket', 'addr:full':'87 Avenue Rd, Toronto' }},
+  // ── Metro ──
+  { type:'node', id:1,  lat:43.6493, lon:-79.3726, tags:{ name:'Metro', shop:'supermarket', 'addr:housenumber':'80',   'addr:street':'Front St E' }},
+  { type:'node', id:2,  lat:43.6591, lon:-79.3800, tags:{ name:'Metro', shop:'supermarket', 'addr:housenumber':'444',  'addr:street':'Yonge St' }},
+  { type:'node', id:3,  lat:43.6582, lon:-79.3790, tags:{ name:'Metro', shop:'supermarket', 'addr:housenumber':'89',   'addr:street':'Gould St' }},
+  { type:'node', id:4,  lat:43.6657, lon:-79.4018, tags:{ name:'Metro', shop:'supermarket', 'addr:housenumber':'425',  'addr:street':'Bloor St W' }},
+  // ── Loblaws ──
+  { type:'node', id:5,  lat:43.6617, lon:-79.3803, tags:{ name:'Loblaws', shop:'supermarket', 'addr:housenumber':'60',   'addr:street':'Carlton St' }},
+  { type:'node', id:6,  lat:43.6413, lon:-79.3712, tags:{ name:'Loblaws', shop:'supermarket', 'addr:housenumber':'10',   'addr:street':'Lower Jarvis St' }},
+  { type:'node', id:7,  lat:43.6462, lon:-79.4053, tags:{ name:'Loblaws', shop:'supermarket', 'addr:housenumber':'585',  'addr:street':'Queen St W' }},
+  // ── No Frills ──
+  { type:'node', id:8,  lat:43.6441, lon:-79.4178, tags:{ name:'No Frills', shop:'supermarket', 'addr:housenumber':'1022', 'addr:street':'King St W' }},
+  // ── Whole Foods ──
+  { type:'node', id:9,  lat:43.6716, lon:-79.3953, tags:{ name:'Whole Foods Market', shop:'supermarket', 'addr:housenumber':'87',   'addr:street':'Avenue Rd' }},
+  // ── T&T Supermarket ──
+  { type:'node', id:10, lat:43.6574, lon:-79.3963, tags:{ name:'T&T Supermarket', shop:'supermarket', 'addr:housenumber':'297',  'addr:street':'College St' }},
+  { type:'node', id:11, lat:43.6571, lon:-79.3838, tags:{ name:'T&T Supermarket', shop:'supermarket', 'addr:housenumber':'26',   'addr:street':'Edward St' }},
+  // ── FreshCo ──
+  { type:'node', id:12, lat:43.6579, lon:-79.4083, tags:{ name:'FreshCo', shop:'supermarket', 'addr:housenumber':'410',  'addr:street':'Bathurst St' }},
 ];
 
 function processOSMStores(elements) {
