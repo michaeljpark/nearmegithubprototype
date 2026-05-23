@@ -8,6 +8,8 @@ const CHAIN_LOGOS = {
   loblaws:  'icons/loblaws.png',
   nofrills: 'icons/nofrills.png',
   tandt:    'icons/tnt.png',
+  freshco:  'icons/freshco.png',
+  farmboy:  'icons/farmboy.png',
 };
 
 /* ─── MAP ─── */
@@ -393,7 +395,7 @@ function haversineKm([lng1, lat1], [lng2, lat2]) {
 
 /* ─── STORE MARKERS ─── */
 function addStoreMarkers(stores) {
-  stores.forEach(store => {
+  stores.filter(s => s.chain !== 'wholefoods').forEach(store => {
     const el = document.createElement('div');
     const logoSrc = CHAIN_LOGOS[store.chain];
     el.className = 'm-pin m-' + store.chain + (logoSrc ? ' has-logo' : '');
