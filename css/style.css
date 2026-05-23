@@ -5,7 +5,7 @@
   .app-header  { display: none !important; }
   .home-hero   { padding: 56px 16px 0 !important; }
   .hero-loc    { display: flex !important; }
-  .hero-search { display: flex !important; margin-bottom: 12px; }
+  .hero-search { display: flex !important; margin-bottom: 6px; }
   .map-topbar  { display: none !important; }
   .map-wrap.show .mobile-map-hero { display: block; }
 }
@@ -15,7 +15,7 @@
   .hero-loc    { display: none !important; }
   .hero-search { display: none !important; }
   .home-hero { background: none !important; padding: 0 !important; }
-  .home-hero .chip-row { background: var(--white); border-bottom: 1px solid var(--border); padding: 12px 16px; }
+  .home-hero .chip-row { background: var(--white); border-bottom: 1px solid var(--border); padding: 7px 16px; }
   /* Promo cards: 1-up horizontal carousel */
   .feat-scroll {
     display: flex;
@@ -60,13 +60,13 @@
 }
 .hero-search input {
   flex: 1;
-  font-size: 15px;
+  font-size: 13px;
   color: #333;
 }
 .hero-search input::placeholder { color: #9E9E9E; }
 
 @media (max-width: 639px) {
-  .home-hero .chip-row { background: transparent; border-bottom: none; padding: 8px 0 16px; }
+  .home-hero .chip-row { background: transparent; border-bottom: none; padding: 5px 0 10px; }
 }
 
 /* ─── FEATURED PROMO CARDS ─── */
@@ -187,12 +187,19 @@
 .mobile-map-hero .chip-row {
   background: transparent;
   border-bottom: none;
-  padding: 8px 0 0;
+  padding: 5px 0 0;
 }
 
 /* ─── MOBILE STORES SECTION ─── */
-.mobile-stores-section { display: block; }
+.mobile-stores-section { display: block; padding: 8px 0 4px; }
 @media (min-width: 640px) { .mobile-stores-section { display: none; } }
+.mobile-stores-section .stores-logos {
+  padding: 4px 14px 8px;
+  justify-content: space-evenly;
+  overflow-x: visible;
+  flex-wrap: wrap;
+  gap: 8px;
+}
 
 /* ─── HOME SECTION TITLE ─── */
 .home-sec-title {
@@ -398,11 +405,11 @@ body {
 .chip {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 5px 12px;
+  gap: 4px;
+  padding: 4px 10px;
   border: 1.5px solid #D0D0D0;
   border-radius: 24px;
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 500;
   color: var(--text1);
   background: var(--white);
@@ -410,7 +417,7 @@ body {
   transition: all 0.15s;
   flex-shrink: 0;
 }
-.chip img { display: block; flex-shrink: 0; }
+.chip img { display: block; flex-shrink: 0; width: 13px; height: 13px; }
 .chip.active {
   background: var(--text1);
   border-color: var(--text1);
@@ -455,7 +462,7 @@ body {
 }
 .store-pill:hover .store-circle { transform: scale(1.08); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
 .store-pill-name { font-size: 10px; color: var(--text2); max-width: 56px; text-align: center; line-height: 1.2; }
-.store-circle img { width: 34px; height: 34px; object-fit: contain; }
+.store-circle img { width: 42px; height: 42px; object-fit: contain; }
 .store-circle.has-logo { background: #fff; border-color: var(--border); }
 
 /* Chain colors */
@@ -475,47 +482,96 @@ body {
 
 /* ─── PRODUCT GRID ─── */
 .pgrid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  flex-direction: column;
   gap: 10px;
   padding: 0 14px 16px;
 }
-.pcard {
+
+/* ─── HORIZONTAL PRODUCT CARD ─── */
+.pcard-h {
+  display: flex;
   background: var(--white);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 16px;
   overflow: hidden;
   cursor: pointer;
-  transition: box-shadow 0.15s, transform 0.15s;
+  height: 110px;
+  transition: box-shadow 0.15s;
 }
-.pcard:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); transform: translateY(-1px); }
-.pcard-img {
-  height: 80px;
+.pcard-h:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+
+.pcard-h-img {
+  width: 42%;
+  flex-shrink: 0;
   background: var(--bg);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 34px;
+  font-size: 52px;
   position: relative;
 }
-.sale-tag {
+
+.pcard-sale-badge {
   position: absolute;
-  top: 5px; left: 5px;
+  top: 10px; left: 10px;
   background: var(--red);
   color: #fff;
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 700;
-  padding: 2px 5px;
-  border-radius: 4px;
+  padding: 4px 10px;
+  border-radius: 100px;
 }
-.chain-tag {
+
+.pcard-h-body {
+  flex: 1;
+  padding: 12px 12px 12px 14px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  min-width: 0;
+}
+
+.pcard-brand-circle {
   position: absolute;
-  top: 5px; right: 5px;
-  font-size: 8px;
+  top: 10px; right: 10px;
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 7px;
   font-weight: 800;
-  padding: 2px 5px;
-  border-radius: 4px;
-  background: rgba(255,255,255,0.9);
+  letter-spacing: -0.3px;
+  text-align: center;
+  border: 1.5px solid var(--border);
+  flex-shrink: 0;
+}
+.pcard-brand-circle img { width: 24px; height: 24px; object-fit: contain; }
+.pcard-brand-circle.has-logo { background: #fff; border-color: var(--border); }
+
+.pcard-h-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text1);
+  line-height: 1.3;
+  margin-top: 2px;
+  padding-right: 40px;
+}
+
+.pcard-h-price {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--red);
+  margin-top: auto;
+  line-height: 1.1;
+}
+
+.pcard-h-orig {
+  font-size: 11px;
+  color: var(--text3);
+  text-decoration: line-through;
+  margin-top: 2px;
 }
 .chain-tag.metro { color: #E31837; }
 .chain-tag.loblaws { color: #1B5E20; }
@@ -884,15 +940,23 @@ body {
 
 /* ─── CUSTOM MAP MARKERS ─── */
 .m-pin {
-  width: 34px; height: 34px;
-  border-radius: 50% 50% 50% 0;
-  transform: rotate(-45deg);
-  border: 3px solid #fff;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+  width: 68px; height: 68px;
+  border-radius: 50%;
+  transform: none;
+  border: 2.5px solid #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.30);
   display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+}
+.m-pin.has-logo { background: transparent; border: none; box-shadow: none; }
+.m-pin img {
+  width: 60px; height: 60px;
+  object-fit: contain;
+  border-radius: 0;
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.25));
 }
 .m-pin span {
-  transform: rotate(45deg);
+  transform: none;
   font-size: 7.5px;
   font-weight: 800;
   text-align: center;

@@ -395,12 +395,15 @@ function haversineKm([lng1, lat1], [lng2, lat2]) {
 function addStoreMarkers(stores) {
   stores.forEach(store => {
     const el = document.createElement('div');
-    el.className = 'm-pin m-' + store.chain;
-    const cfg = CHAIN_CONFIG[store.chain];
-    el.innerHTML = `<span>${cfg.short.slice(0,6)}</span>`;
+    const logoSrc = CHAIN_LOGOS[store.chain];
+    el.className = 'm-pin m-' + store.chain + (logoSrc ? ' has-logo' : '');
+    const cfg = CHAIN_CONFIG[store.chain] || CHAIN_CONFIG.other;
+    el.innerHTML = logoSrc
+      ? `<img src="${logoSrc}" alt="${cfg.short}">`
+      : `<span>${cfg.short.slice(0,6)}</span>`;
     el.title = store.name;
 
-    const marker = new maplibregl.Marker({ element: el, anchor: 'bottom' })
+    const marker = new maplibregl.Marker({ element: el, anchor: 'center' })
       .setLngLat([store.lng, store.lat])
       .addTo(map);
 
@@ -631,17 +634,25 @@ function renderHomeProducts(filter) {
 
 function productCardHTML(p) {
   const cfg = CHAIN_CONFIG[p.chain] || CHAIN_CONFIG.other;
-  const saleTag  = p.salePercent ? `<div class="sale-tag">-${p.salePercent}%</div>` : '';
-  const chainTag = `<div class="chain-tag ${p.chain}">${cfg.short}</div>`;
-  const orig     = p.originalPrice ? `<div class="pcard-orig">$${p.originalPrice.toFixed(2)}</div>` : '';
-  const priceC   = p.salePercent ? '' : 'normal';
+  const saleBadge = p.salePercent
+    ? `<div class="pcard-sale-badge">-${p.salePercent}%</div>` : '';
+  const origPrice = p.originalPrice
+    ? `<div class="pcard-h-orig">$${p.originalPrice.toFixed(2)} ea.</div>` : '';
+  const logoSrc = CHAIN_LOGOS[p.chain];
+  const brandCircle = logoSrc
+    ? `<div class="pcard-brand-circle sc-${p.chain} has-logo"><img src="${logoSrc}" alt="${cfg.short}"></div>`
+    : `<div class="pcard-brand-circle sc-${p.chain}"><span>${cfg.short}</span></div>`;
   return `
-    <div class="pcard" onclick="doSearch('${p.name.split(' ')[0].toLowerCase()}')">
-      <div class="pcard-img">${saleTag}${chainTag}<span>${p.emoji}</span></div>
-      <div class="pcard-info">
-        <div class="pcard-name">${p.name}</div>
-        ${orig}
-        <div class="pcard-price ${priceC}">$${p.price.toFixed(2)} ea.</div>
+    <div class="pcard-h" onclick="doSearch('${p.name.split(' ')[0].toLowerCase()}')">
+      <div class="pcard-h-img">
+        ${saleBadge}
+        <span>${p.emoji}</span>
+      </div>
+      <div class="pcard-h-body">
+        ${brandCircle}
+        <div class="pcard-h-name">${p.name}</div>
+        <div class="pcard-h-price">$${p.price.toFixed(2)} ea.</div>
+        ${origPrice}
       </div>
     </div>`;
 }
@@ -674,6 +685,9 @@ document.addEventListener('DOMContentLoaded', () => {
       mapSearchInput.value = '';
     }
   });
+
+  // Ensure home products are visible even if first DOMContentLoaded had an error
+  renderHomeProducts('favourite');
 });
 
 /* ─── STORE LOGOS ─── */
@@ -681,7 +695,10 @@ function renderStoreLogos(stores) {
   const seen = new Set();
   const pills = [];
   stores.forEach(s => {
-    if (!seen.has(s.chain)) { seen.add(s.chain); pills.push(s); }
+    if (!seen.has(s.chain) && s.chain !== 'wholefoods') {
+      seen.add(s.chain);
+      pills.push(s);
+    }
   });
 
   const html = pills.slice(0, 10).map(s => {
