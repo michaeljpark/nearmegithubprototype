@@ -309,9 +309,10 @@ body {
   display: flex;
   align-items: center;
   white-space: nowrap;
+  padding: 12px 12px;
 }
 .header-logo-img {
-  height: 16px;
+  height: 26px;
   width: auto;
   display: block;
 }
