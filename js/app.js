@@ -13,6 +13,16 @@ const CHAIN_LOGOS = {
   longos:   'icons/longos.png',
 };
 
+const CHAIN_LOGOS1 = {
+  metro:    'icons/metro1.png',
+  loblaws:  'icons/loblaws1.png',
+  nofrills: 'icons/nofrills1.png',
+  tandt:    'icons/tnt1.png',
+  freshco:  'icons/freshco1.png',
+  farmboy:  'icons/farmboy1.png',
+  longos:   'icons/longos1.png',
+};
+
 /* ─── MAP ─── */
 let map = null;
 let userMarker = null;            // single instance, no duplicates
@@ -246,24 +256,12 @@ function flyToStoreWith3D(lngLat) {
     essential: true,
   });
 
-  // Enable 3D building extrusion spotlight within SPOTLIGHT_M radius
-  // Uses a GeoJSON polygon as a MapLibre 'within' filter
-  const spotPoly = makeCirclePoly(lngLat, SPOTLIGHT_M);
-  if (!map.getSource('spotlight-src')) {
-    map.addSource('spotlight-src', { type: 'geojson', data: spotPoly });
-  } else {
-    map.getSource('spotlight-src').setData(spotPoly);
-  }
-
-  map.setFilter('3d-buildings', ['within', spotPoly]);
   map.setPaintProperty('3d-buildings', 'fill-extrusion-opacity', 0.92);
-
   ctrl3DRef?.setActive(true);
   is3D = true;
 }
 
 function resetFrom3D() {
-  map.setFilter('3d-buildings', ['==', '$type', 'Polygon']);
   map.setPaintProperty('3d-buildings', 'fill-extrusion-opacity', is3D ? 0.9 : 0);
 }
 
@@ -477,17 +475,21 @@ function showStoreCard(store) {
     </div>
   ` : '';
 
+  const logoSrc = CHAIN_LOGOS1[store.chain];
+  const btnTextColor = store.chain === 'nofrills' ? '#000' : '#fff';
+
   document.getElementById('card-body').innerHTML = `
     <div class="card-main">
-      <div class="card-logo ${store.chain}">${cfg.label}</div>
+      <div class="card-logo ${store.chain}">
+        ${logoSrc ? `<img src="${logoSrc}" alt="${cfg.label}" onerror="this.style.display='none'">` : cfg.label}
+      </div>
       <div class="card-info">
         <div class="card-name">${store.name}</div>
         <div class="card-addr">${store.address}</div>
         <div class="card-dist">${store.dist} km away</div>
       </div>
       <div class="card-actions">
-        <button class="card-3d-btn" onclick="flyToStoreWith3D([${store.lng},${store.lat}])">3D View</button>
-        <button class="card-see-all" onclick="doSearch('${store.chain}')">See All</button>
+        <button class="card-see-all" style="background:${cfg.bg};border-color:${cfg.bg};color:${btnTextColor};" onclick="doSearch('${store.chain}')">See All</button>
       </div>
     </div>
     ${dealHTML}
