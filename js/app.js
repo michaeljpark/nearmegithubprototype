@@ -530,9 +530,9 @@ function setupCardSwipe() {
     currentY = 0;
   };
 
-  handle.addEventListener('touchstart', onStart, { passive: true });
-  handle.addEventListener('touchmove', onMove, { passive: true });
-  handle.addEventListener('touchend', onEnd);
+  card.addEventListener('touchstart', onStart, { passive: true });
+  card.addEventListener('touchmove', onMove, { passive: true });
+  card.addEventListener('touchend', onEnd);
   handle.addEventListener('mousedown', onStart);
   window.addEventListener('mousemove', onMove);
   window.addEventListener('mouseup', onEnd);
