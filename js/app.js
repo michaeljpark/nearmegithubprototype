@@ -78,18 +78,17 @@ function setupScrollFade(el) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  initMap();
-  setupNavigation();
-  setupSearch();
-  setupListPage();
-  setupCardSwipe();
-  renderHomeProducts('favourite');
-  document.getElementById('list-date').textContent =
-    new Date().toLocaleDateString('en-CA', { year: 'numeric', month: 'numeric', day: 'numeric' });
+  // Render UI first so a map init failure (e.g. no WebGL in headless) can't break the rest
+  try { setupNavigation(); } catch (e) { console.error(e); }
+  try { setupSearch(); } catch (e) { console.error(e); }
+  try { setupListPage(); } catch (e) { console.error(e); }
+  try { setupCardSwipe(); } catch (e) { console.error(e); }
+  try { renderHomeProducts('favourite'); } catch (e) { console.error(e); }
+  try { initMap(); } catch (e) { console.error(e); }
   window.addEventListener('resize', handleResize);
-  setupScrollFade(document.getElementById('home-chips'));
-  setupScrollFade(document.getElementById('map-home-chips'));
-  setupScrollFade(document.querySelector('.mobile-stores-section .stores-logos'));
+  try { setupScrollFade(document.getElementById('home-chips')); } catch (e) {}
+  try { setupScrollFade(document.getElementById('map-home-chips')); } catch (e) {}
+  try { setupScrollFade(document.querySelector('.mobile-stores-section .stores-logos')); } catch (e) {}
 });
 
 /* ─── RESPONSIVE ─── */
@@ -470,40 +469,61 @@ function filterMapMarkers() {
 /* ─── STORE CARD ─── */
 function showStoreCard(store) {
   const cfg = CHAIN_CONFIG[store.chain] || CHAIN_CONFIG.other;
-
-  // Pick a sample deal
-  const allDeals = Object.values(PRODUCTS).flat();
-  const deal = allDeals.find(p => p.chain === store.chain && p.salePercent) || allDeals[0];
-
-  const dealHTML = deal ? `
-    <div class="card-deal">
-      <div class="card-deal-img">${deal.emoji}</div>
-      <div>
-        <div class="card-deal-name">${deal.name}</div>
-        <div class="card-deal-price">$${deal.price.toFixed(2)} avg. ea.</div>
-        ${deal.originalPrice ? `<div class="card-deal-orig">$${deal.originalPrice.toFixed(2)}</div>` : ''}
-      </div>
-    </div>
-  ` : '';
-
   const logoSrc = CHAIN_LOGOS1[store.chain];
-  const btnTextColor = (store.chain === 'freshco' || store.chain === 'nofrills') ? '#000' : '#fff';
+
+  // Pick several deals from this chain (fall back to any) so the expanded sheet has content
+  const allProducts = Object.values(PRODUCTS).flat();
+  const seen = new Set();
+  const deals = allProducts.filter(p => {
+    if (p.chain !== store.chain) return false;
+    if (seen.has(p.id)) return false;
+    seen.add(p.id);
+    return true;
+  });
+  if (deals.length < 3) {
+    allProducts.forEach(p => {
+      if (deals.length >= 5) return;
+      if (seen.has(p.id)) return;
+      seen.add(p.id);
+      deals.push(p);
+    });
+  }
+
+  const dealsHTML = deals.slice(0, 6).map(p => {
+    const badges = [];
+    if (p.salePercent) badges.push(`<span class="sc-badge sc-badge--sale">-${p.salePercent}%</span>`);
+    if (p.id % 2 === 0) badges.push(`<span class="sc-badge sc-badge--pts">125pt</span>`);
+    return `
+      <div class="sc-item">
+        <div class="sc-item-img">
+          <div class="sc-item-badges">${badges.join('')}</div>
+          <span class="sc-item-emoji">${p.emoji}</span>
+        </div>
+        <div class="sc-item-body">
+          <div class="sc-item-head">
+            <div class="sc-item-name">${p.name}</div>
+            <button class="sc-item-add" aria-label="Add">+</button>
+          </div>
+          <div class="sc-item-price">$${p.price.toFixed(2)} avg. ea.</div>
+          ${p.originalPrice ? `<div class="sc-item-orig">$${p.originalPrice.toFixed(2)}</div>` : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
 
   document.getElementById('card-body').innerHTML = `
-    <div class="card-main">
-      <div class="card-logo ${store.chain}">
+    <div class="sc-top">
+      <div class="sc-logo ${store.chain}">
         ${logoSrc ? `<img src="${logoSrc}" alt="${cfg.label}" onerror="this.style.display='none'">` : cfg.label}
       </div>
-      <div class="card-info">
-        <div class="card-name">${store.name}</div>
-        <div class="card-addr">${store.address}</div>
-        <div class="card-dist">${store.dist} km away</div>
-      </div>
-      <div class="card-actions">
-        <button class="card-see-all" style="background:${cfg.bg};border-color:${cfg.bg};color:${btnTextColor};" onclick="doSearch('${store.chain}')">See All</button>
-      </div>
+      <button class="sc-see-all" id="sc-see-all" onclick="toggleStoreCardSheet()">See All</button>
     </div>
-    ${dealHTML}
+    <div class="sc-info">
+      <div class="sc-name">${store.name}</div>
+      ${store.address ? `<div class="sc-addr">${store.address}</div>` : ''}
+      ${store.dist != null ? `<div class="sc-dist">${store.dist} km away</div>` : ''}
+    </div>
+    <div class="sc-items">${dealsHTML}</div>
   `;
   document.getElementById('store-card').classList.remove('hidden');
 }
@@ -519,62 +539,84 @@ function hideStoreCard() {
 function setupCardSwipe() {
   const card = document.getElementById('store-card');
   const handle = document.getElementById('card-handle');
-  let startY = 0, deltaY = 0, dragging = false, startedExpanded = false;
+  let startY = 0, deltaY = 0, dragging = false, startedExpanded = false, activePtrId = null;
 
-  const onStart = (e) => {
-    // Only start a drag from the handle, or from anywhere when the card
-    // isn't scrolled — otherwise let inner scrolling work normally.
-    const fromHandle = e.target.closest('#card-handle');
-    if (!fromHandle && card.scrollTop > 0) return;
+  const onDown = (e) => {
+    if (e.button != null && e.button !== 0) return;
+    const inItems   = e.target.closest('.sc-items');
+    const isExpanded = card.classList.contains('expanded');
+
+    // When EXPANDED, the .sc-items area is the scrollable list — let native
+    // scroll handle drags there. Everywhere else (handle, logo row, store
+    // info) acts as a drag affordance to collapse / dismiss the sheet.
+    if (isExpanded && inItems) return;
+    // When COLLAPSED, allow drag from anywhere (small surface, no real scroll needed).
+
     dragging = true;
-    startedExpanded = card.classList.contains('expanded');
-    startY = e.touches ? e.touches[0].clientY : e.clientY;
+    activePtrId = e.pointerId;
+    startedExpanded = isExpanded;
+    startY = e.clientY;
     deltaY = 0;
     card.style.transition = 'none';
+    try { card.setPointerCapture(e.pointerId); } catch {}
   };
+
   const onMove = (e) => {
-    if (!dragging) return;
-    deltaY = (e.touches ? e.touches[0].clientY : e.clientY) - startY;
-    // Track downward drags as translateY (for dismiss); ignore upward visual drag.
-    if (startedExpanded) {
-      // when expanded, only react to downward drags for collapse
-      card.style.transform = `translateY(${Math.max(0, deltaY)}px)`;
-    } else {
-      // when collapsed, downward drags translate; upward drags do nothing visual
-      card.style.transform = `translateY(${Math.max(0, deltaY)}px)`;
-    }
+    if (!dragging || e.pointerId !== activePtrId) return;
+    deltaY = e.clientY - startY;
+    // Only translate on downward drag (upward "expand" shouldn't yank the card up)
+    card.style.transform = `translateY(${Math.max(0, deltaY)}px)`;
+    e.preventDefault();
   };
-  const onEnd = () => {
+
+  const onUp = () => {
     if (!dragging) return;
     dragging = false;
+    activePtrId = null;
     card.style.transition = '';
     card.style.transform = '';
     const THRESHOLD = 60;
     if (startedExpanded) {
-      // expanded → swipe down enough collapses; very large swipe dismisses
       if (deltaY > 180) hideStoreCard();
       else if (deltaY > THRESHOLD) card.classList.remove('expanded');
     } else {
-      // collapsed → swipe up enough expands; swipe down dismisses
       if (deltaY < -THRESHOLD) card.classList.add('expanded');
       else if (deltaY > 80) hideStoreCard();
     }
-    deltaY = 0;
+    syncSeeAllLabel();
   };
 
-  card.addEventListener('touchstart', onStart, { passive: true });
-  card.addEventListener('touchmove', onMove, { passive: true });
-  card.addEventListener('touchend', onEnd);
-  handle.addEventListener('mousedown', onStart);
-  window.addEventListener('mousemove', onMove);
-  window.addEventListener('mouseup', onEnd);
+  card.addEventListener('pointerdown', onDown);
+  card.addEventListener('pointermove', onMove);
+  card.addEventListener('pointerup', onUp);
+  card.addEventListener('pointercancel', onUp);
 
-  // Tap the handle to toggle expanded/collapsed (no swipe required)
-  handle.addEventListener('click', (e) => {
-    if (Math.abs(deltaY) > 5) return; // was a drag, not a tap
+  // Tap handle to toggle (when it wasn't a real drag)
+  handle.addEventListener('click', () => {
+    if (Math.abs(deltaY) > 5) return;
     card.classList.toggle('expanded');
+    syncSeeAllLabel();
+    deltaY = 0;
   });
 }
+
+function syncSeeAllLabel() {
+  const btn = document.getElementById('sc-see-all');
+  if (!btn) return;
+  const card = document.getElementById('store-card');
+  btn.textContent = card.classList.contains('expanded') ? 'Close' : 'See All';
+}
+
+window.toggleStoreCardSheet = function() {
+  const card = document.getElementById('store-card');
+  if (card.classList.contains('expanded')) {
+    card.classList.remove('expanded');
+  } else {
+    card.classList.add('expanded');
+    card.scrollTop = 0;
+  }
+  syncSeeAllLabel();
+};
 
 window.flyToStoreWith3D = flyToStoreWith3D;
 
@@ -854,75 +896,98 @@ window.focusStore = function(lng, lat, chain) {
 /* ═════════════════════════════════════════════
    MY LIST
 ═════════════════════════════════════════════ */
+const LL_TRASH_SVG = `<svg width="18" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 7h16M9.5 7V5.5A1.5 1.5 0 0 1 11 4h2a1.5 1.5 0 0 1 1.5 1.5V7M6.5 7l1 12.2A1.5 1.5 0 0 0 9 20.5h6a1.5 1.5 0 0 0 1.5-1.3L17.5 7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+const LL_MINUS_SVG = `<svg width="12" height="2" viewBox="0 0 12 2" fill="none"><path d="M1 1h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>`;
+const LL_PLUS_SVG  = `<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1v10M1 6h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>`;
+
 function setupListPage() {
-  renderListSection('list-metro', SHOPPING_LIST.metro);
-  renderListSection('list-nofrills', SHOPPING_LIST.nofrills);
-  document.getElementById('list-products').innerHTML =
-    PRODUCTS.deals.slice(0, 4).map(productCardHTML).join('');
+  // Date — 5/22/2026 style (M/D/YYYY)
+  const d = new Date(2026, 4, 22); // mock matches Figma; replace w/ Date.now() if you want live
+  document.getElementById('list-date').textContent =
+    `${d.getMonth()+1}/ ${d.getDate()} / ${d.getFullYear()}`;
+
+  renderLLSection('list-metro', SHOPPING_LIST.metro);
+  renderLLSection('list-nofrills', SHOPPING_LIST.nofrills);
+  renderLLSuggest();
+  updateLLSummary();
 }
 
-function renderListSection(id, items) {
-  const trashSVG = `<svg width="14" height="16" viewBox="0 0 24 24" fill="none"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+function renderLLSection(id, items) {
   document.getElementById(id).innerHTML = items.map(item => `
-    <div class="list-card" data-orig-qty="${item.qty}">
-      <div class="list-card-img">${item.emoji}</div>
-      <div class="list-card-body">
-        <button class="list-card-del" onclick="removeListCard(this)">${trashSVG}</button>
-        <div class="list-card-name">${item.name}</div>
-        <div class="list-card-price">$${item.price.toFixed(2)} avg. ea.</div>
-        <div class="list-card-foot">
-          <button class="list-qty-add" onclick="expandQty(this)">+</button>
-          <div class="list-qty-ctrl">
-            <button class="list-qty-btn" onclick="changeQty(this,-1)">−</button>
-            <span class="qty-num">${item.qty}</span>
-            <button class="list-qty-btn" onclick="changeQty(this,1)">+</button>
-          </div>
+    <div class="lcard" data-price="${item.price}" data-qty="${item.qty}">
+      <div class="lcard-img">${item.emoji}</div>
+      <div class="lcard-body">
+        <div class="lcard-name">${item.name}</div>
+        <button class="lcard-del" aria-label="Remove" onclick="llRemove(this)">${LL_TRASH_SVG}</button>
+        <div class="lcard-price">$${item.price.toFixed(2)} avg. ea.</div>
+        <div class="lcard-qty">
+          <button class="lcard-qty-btn" aria-label="Decrease" onclick="llChangeQty(this,-1)">${LL_MINUS_SVG}</button>
+          <span class="lcard-qty-num">${item.qty}</span>
+          <button class="lcard-qty-btn" aria-label="Increase" onclick="llChangeQty(this,1)">${LL_PLUS_SVG}</button>
         </div>
       </div>
-    </div>
-    <div class="list-save-bar hidden">
-      <button class="list-pill-cancel" onclick="cancelQtyEdit(this)">Cancel</button>
-      <button class="list-pill-save" onclick="saveQtyEdit(this)">Save</button>
     </div>
   `).join('');
 }
 
-window.removeListCard = function(btn) {
-  const card = btn.closest('.list-card');
-  const bar = card.nextElementSibling;
-  if (bar?.classList.contains('list-save-bar')) bar.remove();
-  card.remove();
+function renderLLSuggest() {
+  const suggestions = PRODUCTS.favourite.slice(0, 6);
+  document.getElementById('list-products').innerHTML = suggestions.map(p => {
+    const cfg  = CHAIN_CONFIG[p.chain] || CHAIN_CONFIG.other;
+    const logo = CHAIN_LOGOS[p.chain];
+    const brandClass = `sc-${p.chain}`;
+    const brandInner = logo
+      ? `<img src="${logo}" alt="${cfg.label}" onerror="this.style.display='none'">`
+      : cfg.short;
+    return `
+      <div class="lpcard">
+        <div class="lpcard-img">
+          <span class="lpcard-brand ${brandClass}${logo ? ' has-logo' : ''}">${brandInner}</span>
+          <button class="lpcard-add" aria-label="Add to list">+</button>
+          <span>${p.emoji}</span>
+        </div>
+        <div class="lpcard-body">
+          <div class="lpcard-name">${p.name}</div>
+          <div class="lpcard-price">$${p.price.toFixed(2)}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function updateLLSummary() {
+  let total = 0, save = 0;
+  document.querySelectorAll('#panel-list .lcard').forEach(card => {
+    const price = parseFloat(card.dataset.price) || 0;
+    const qty   = parseInt(card.dataset.qty) || 0;
+    total += price * qty;
+  });
+  // mock savings as 30% of total for now
+  save = total * 0.30;
+
+  const fmt = n => {
+    const dollars = Math.floor(n);
+    const cents = Math.round((n - dollars) * 100).toString().padStart(2, '0');
+    return `$${dollars}<sup>${cents}</sup>`;
+  };
+  const saveEl  = document.querySelector('.ll-save b');
+  const totalEl = document.querySelector('.ll-total b');
+  if (saveEl)  saveEl.innerHTML  = fmt(save);
+  if (totalEl) totalEl.innerHTML = fmt(total);
+}
+
+window.llRemove = function(btn) {
+  btn.closest('.lcard').remove();
+  updateLLSummary();
 };
 
-window.expandQty = function(btn) {
-  const card = btn.closest('.list-card');
-  btn.style.display = 'none';
-  card.querySelector('.list-qty-ctrl').classList.add('show');
-  card.nextElementSibling?.classList.remove('hidden');
-};
-
-window.cancelQtyEdit = function(btn) {
-  const bar = btn.closest('.list-save-bar');
-  const card = bar.previousElementSibling;
-  card.querySelector('.qty-num').textContent = card.dataset.origQty;
-  card.querySelector('.list-qty-ctrl').classList.remove('show');
-  card.querySelector('.list-qty-add').style.display = '';
-  bar.classList.add('hidden');
-};
-
-window.saveQtyEdit = function(btn) {
-  const bar = btn.closest('.list-save-bar');
-  const card = bar.previousElementSibling;
-  const newQty = card.querySelector('.qty-num').textContent;
-  card.dataset.origQty = newQty;
-  card.querySelector('.list-qty-ctrl').classList.remove('show');
-  card.querySelector('.list-qty-add').style.display = '';
-  bar.classList.add('hidden');
-};
-
-window.changeQty = function(btn, d) {
-  const el = btn.closest('.list-qty-ctrl').querySelector('.qty-num');
-  el.textContent = Math.max(1, parseInt(el.textContent) + d);
+window.llChangeQty = function(btn, d) {
+  const card = btn.closest('.lcard');
+  const numEl = card.querySelector('.lcard-qty-num');
+  const next = Math.max(1, (parseInt(card.dataset.qty) || 1) + d);
+  card.dataset.qty = next;
+  numEl.textContent = next;
+  updateLLSummary();
 };
 
 window.pcardExpandQty = function(btn) {

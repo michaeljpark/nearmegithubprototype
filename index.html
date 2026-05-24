@@ -146,31 +146,46 @@
         <!-- MY LIST -->
         <div class="pview" id="panel-list">
           <div class="pscroll">
-            <div class="list-hdr">
-              <!-- list.svg -->
-              <svg width="19" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M5 19.9835V4C5 3.44772 5.44771 3 6 3H18.5C19.0523 3 19.5 3.44772 19.5 4V19.9835C19.5 20.7014 18.7659 21.1854 18.1061 20.9026L16.3939 20.1688C16.1424 20.061 15.8576 20.061 15.6061 20.1688L12.8691 21.3418C12.6322 21.4433 12.3653 21.4495 12.124 21.359L8.87597 20.141C8.63469 20.0505 8.36779 20.0567 8.13093 20.1582L6.39392 20.9026C5.73405 21.1854 5 20.7014 5 19.9835Z" stroke="#1A1A1A" stroke-width="1.5" stroke-linecap="round"/>
-                <path d="M8 9H16.5M8 12H12" stroke="#1A1A1A" stroke-width="1.5" stroke-linecap="round"/>
+            <div class="ll-hdr">
+              <svg class="ll-hdr-icon" width="44" height="50" viewBox="0 0 24 27" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M5 23.5V4C5 3.44772 5.44771 3 6 3H18.5C19.0523 3 19.5 3.44772 19.5 4V23.5C19.5 24.2179 18.7659 24.7019 18.1061 24.4191L16.3939 23.6853C16.1424 23.5775 15.8576 23.5775 15.6061 23.6853L12.8691 24.8583C12.6322 24.9598 12.3653 24.966 12.124 24.8755L8.87597 23.6575C8.63469 23.567 8.36779 23.5732 8.13093 23.6747L6.39392 24.4191C5.73405 24.7019 5 24.2179 5 23.5Z" stroke="#1A1A1A" stroke-width="1.6" stroke-linecap="round"/>
+                <path d="M8 10H16.5M8 13H12" stroke="#1A1A1A" stroke-width="1.6" stroke-linecap="round"/>
               </svg>
-              <div>
-                <div class="list-title">Your List</div>
-                <div class="list-date" id="list-date"></div>
+              <div class="ll-hdr-text">
+                <div class="ll-title">Your List</div>
+                <div class="ll-date" id="list-date"></div>
               </div>
             </div>
-            <div class="list-grp">
-              <div class="list-store-logo metro">metro</div>
-              <div id="list-metro"></div>
+
+            <!-- METRO group -->
+            <div class="ll-store">
+              <div class="ll-store-logo metro">metro</div>
+              <div id="list-metro" class="ll-items"></div>
             </div>
-            <div class="list-grp">
-              <div class="list-store-logo nofrills"><span class="nf-flag">🍁</span> NOFRILLS</div>
-              <div id="list-nofrills"></div>
+
+            <!-- Summary -->
+            <div class="ll-summary">
+              <span class="ll-save">SAVE: <b>$000<sup>00</sup></b></span>
+              <span class="ll-total">Total: <b>$000<sup>00</sup></b></span>
             </div>
-            <div class="list-summary">
-              <span class="save-txt">SAVE: <b>$20<sup>**</sup></b></span>
-              <span class="total-txt">Total: <b>$30<sup>**</sup></b></span>
+
+            <!-- You might like (horizontal scroll) -->
+            <div class="ll-might-title">You might like</div>
+            <div class="ll-suggest-scroll" id="list-products"></div>
+
+            <!-- NOFRILLS group -->
+            <div class="ll-store">
+              <div class="ll-store-logo nofrills">
+                <span class="nf-flag" aria-hidden="true">
+                  <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="22" height="22" rx="3" fill="#DA291C"/>
+                    <path d="M11 5l1.05 2.6 2.8.2-2.13 1.82.69 2.72L11 10.9l-2.41 1.44.69-2.72L7.15 7.8l2.8-.2L11 5z" fill="#fff"/>
+                  </svg>
+                </span>
+                <span class="nf-text">NO<span class="nf-text-bold">FRILLS</span></span>
+              </div>
+              <div id="list-nofrills" class="ll-items"></div>
             </div>
-            <div class="sec-label" style="padding:16px 16px 8px">You might like</div>
-            <div class="pgrid" id="list-products"></div>
           </div>
         </div>
 
