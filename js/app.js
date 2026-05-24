@@ -52,6 +52,21 @@ let mobileMode  = window.innerWidth <= 768;
 /* ═════════════════════════════════════════════
    INIT
 ═════════════════════════════════════════════ */
+function setupScrollFade(el) {
+  if (!el) return;
+  const update = () => {
+    const atStart = el.scrollLeft <= 2;
+    const atEnd   = el.scrollLeft >= el.scrollWidth - el.clientWidth - 2;
+    const left    = atStart ? 'black 0%' : 'transparent 0%, black 40px';
+    const right   = atEnd   ? 'black 100%' : 'black calc(100% - 40px), transparent 100%';
+    const mask = `linear-gradient(to right, ${left}, ${right})`;
+    el.style.webkitMaskImage = mask;
+    el.style.maskImage = mask;
+  };
+  el.addEventListener('scroll', update, { passive: true });
+  update();
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   initMap();
   setupNavigation();
@@ -61,6 +76,9 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('list-date').textContent =
     new Date().toLocaleDateString('en-CA', { year: 'numeric', month: 'numeric', day: 'numeric' });
   window.addEventListener('resize', handleResize);
+  setupScrollFade(document.getElementById('home-chips'));
+  setupScrollFade(document.getElementById('map-home-chips'));
+  setupScrollFade(document.querySelector('.mobile-stores-section .stores-logos'));
 });
 
 /* ─── RESPONSIVE ─── */
@@ -647,7 +665,9 @@ function productCardHTML(p) {
     ? `<div class="pcard-brand-circle sc-${p.chain} has-logo"><img src="${logoSrc}" alt="${cfg.short}"></div>`
     : `<div class="pcard-brand-circle sc-${p.chain}"><span>${cfg.short}</span></div>`;
   return `
-    <div class="pcard-h" onclick="doSearch('${p.name.split(' ')[0].toLowerCase()}')">
+    <div class="pcard-wrap">
+      <div class="pcard-new-badge">New!</div>
+      <div class="pcard-h" onclick="doSearch('${p.name.split(' ')[0].toLowerCase()}')">
       <div class="pcard-h-img">
         ${saleBadge}
         <span>${p.emoji}</span>
@@ -658,6 +678,7 @@ function productCardHTML(p) {
         <div class="pcard-h-price">$${p.price.toFixed(2)} ea.</div>
         ${origPrice}
       </div>
+    </div>
     </div>`;
 }
 

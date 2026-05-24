@@ -8,6 +8,9 @@
   .hero-search { display: flex !important; margin-bottom: 6px; }
   .map-topbar  { display: none !important; }
   .map-wrap.show .mobile-map-hero { display: block; }
+  #panel-home {
+    background: linear-gradient(to bottom, #36A05B 0%, rgba(54,160,91,0) 40%) no-repeat;
+  }
 }
 
 /* Desktop: header visible, hero loc+search hidden, chips plain white */
@@ -31,11 +34,11 @@
 }
 
 .home-hero {
-  background: linear-gradient(to bottom, #36A05B 0%, #36A05B 55%, rgba(54,160,91,0) 100%);
+  background: transparent;
   padding: 52px 16px 0;
   flex-shrink: 0;
   position: relative;
-  z-index: 10;
+  z-index: 0;
 }
 
 .hero-loc {
@@ -70,6 +73,13 @@
 }
 
 /* ─── FEATURED PROMO CARDS ─── */
+.feat-label {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text1);
+  padding: 14px 20px 8px;
+}
+@media (max-width: 639px) { .feat-label { display: none; } }
 .feat-scroll {
   display: flex;
   gap: 12px;
@@ -195,10 +205,17 @@
 @media (min-width: 640px) { .mobile-stores-section { display: none; } }
 .mobile-stores-section .stores-logos {
   padding: 4px 14px 8px;
-  justify-content: space-evenly;
-  overflow-x: visible;
-  flex-wrap: wrap;
-  gap: 8px;
+  justify-content: flex-start;
+  overflow-x: auto;
+  flex-wrap: nowrap;
+  gap: 14px;
+  -webkit-mask-image: linear-gradient(to right, black 0%, black calc(100% - 40px), transparent 100%);
+  mask-image: linear-gradient(to right, black 0%, black calc(100% - 40px), transparent 100%);
+}
+.mobile-stores-section .stores-logos::after {
+  content: '';
+  min-width: 28px;
+  flex-shrink: 0;
 }
 
 /* ─── HOME SECTION TITLE ─── */
@@ -399,15 +416,18 @@ body {
   background: var(--white);
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
+  -webkit-mask-image: linear-gradient(to right, black 0%, black calc(100% - 40px), transparent 100%);
+  mask-image: linear-gradient(to right, black 0%, black calc(100% - 40px), transparent 100%);
 }
 .chip-row::-webkit-scrollbar { display: none; }
+.chip-row::after { content: ''; min-width: 28px; flex-shrink: 0; }
 
 .chip {
   display: flex;
   align-items: center;
   gap: 4px;
   padding: 4px 10px;
-  border: 1.5px solid #D0D0D0;
+  border: none;
   border-radius: 24px;
   font-size: 11px;
   font-weight: 500;
@@ -489,6 +509,19 @@ body {
 }
 
 /* ─── HORIZONTAL PRODUCT CARD ─── */
+.pcard-wrap {
+  position: relative;
+  padding-top: 18px;
+}
+.pcard-new-badge {
+  position: absolute;
+  top: 4px;
+  left: 14px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--green);
+}
+@media (max-width: 639px) { .pcard-new-badge { display: none; } }
 .pcard-h {
   display: flex;
   background: var(--white);
