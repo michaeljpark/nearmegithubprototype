@@ -717,18 +717,32 @@ function productCardHTML(p) {
   return `
     <div class="pcard-wrap">
       <div class="pcard-new-badge">New!</div>
-      <div class="pcard-h" onclick="doSearch('${p.name.split(' ')[0].toLowerCase()}')">
-      <div class="pcard-h-img">
-        ${saleBadge}
-        <span>${p.emoji}</span>
+      <div class="pcard-h">
+        <div class="pcard-h-row" onclick="doSearch('${p.name.split(' ')[0].toLowerCase()}')">
+          <div class="pcard-h-img">
+            ${saleBadge}
+            <span>${p.emoji}</span>
+          </div>
+          <div class="pcard-h-body">
+            ${brandCircle}
+            <div class="pcard-h-name">${p.name}</div>
+            <div class="pcard-h-price">$${p.price.toFixed(2)} ea.</div>
+            ${origPrice}
+            <div class="pcard-qty-row">
+              <button class="pcard-add-btn" onclick="event.stopPropagation();pcardExpandQty(this)">+</button>
+              <div class="pcard-qty-ctrl">
+                <button class="pcard-qty-btn" onclick="event.stopPropagation();pcardChangeQty(this,-1)">−</button>
+                <span class="pcard-qty-num">1</span>
+                <button class="pcard-qty-btn" onclick="event.stopPropagation();pcardChangeQty(this,1)">+</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="pcard-save-bar hidden">
+          <button class="list-pill-cancel" onclick="pcardCancelQty(this)">Cancel</button>
+          <button class="list-pill-save" onclick="pcardSaveQty(this)">Save</button>
+        </div>
       </div>
-      <div class="pcard-h-body">
-        ${brandCircle}
-        <div class="pcard-h-name">${p.name}</div>
-        <div class="pcard-h-price">$${p.price.toFixed(2)} ea.</div>
-        ${origPrice}
-      </div>
-    </div>
     </div>`;
 }
 
@@ -821,25 +835,98 @@ function setupListPage() {
 }
 
 function renderListSection(id, items) {
+  const trashSVG = `<svg width="14" height="16" viewBox="0 0 24 24" fill="none"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
   document.getElementById(id).innerHTML = items.map(item => `
-    <div class="list-item">
-      <div class="list-item-img">${item.emoji}</div>
-      <div class="list-item-info">
-        <div class="list-item-name">${item.name}</div>
-        <div class="list-item-price">$${item.price.toFixed(2)} avg. ea.</div>
+    <div class="list-card" data-orig-qty="${item.qty}">
+      <div class="list-card-img">${item.emoji}</div>
+      <div class="list-card-body">
+        <button class="list-card-del" onclick="removeListCard(this)">${trashSVG}</button>
+        <div class="list-card-name">${item.name}</div>
+        <div class="list-card-price">$${item.price.toFixed(2)} avg. ea.</div>
+        <div class="list-card-foot">
+          <button class="list-qty-add" onclick="expandQty(this)">+</button>
+          <div class="list-qty-ctrl">
+            <button class="list-qty-btn" onclick="changeQty(this,-1)">−</button>
+            <span class="qty-num">${item.qty}</span>
+            <button class="list-qty-btn" onclick="changeQty(this,1)">+</button>
+          </div>
+        </div>
       </div>
-      <div class="list-controls">
-        <button class="qty-btn" onclick="changeQty(this,-1)">−</button>
-        <span class="qty-num">${item.qty}</span>
-        <button class="qty-btn" onclick="changeQty(this,1)">+</button>
-        <button class="del-btn" onclick="this.closest('.list-item').remove()">
-          <svg width="14" height="16" viewBox="0 0 24 24" fill="none"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </button>
-      </div>
-    </div>`).join('');
+    </div>
+    <div class="list-save-bar hidden">
+      <button class="list-pill-cancel" onclick="cancelQtyEdit(this)">Cancel</button>
+      <button class="list-pill-save" onclick="saveQtyEdit(this)">Save</button>
+    </div>
+  `).join('');
 }
 
+window.removeListCard = function(btn) {
+  const card = btn.closest('.list-card');
+  const bar = card.nextElementSibling;
+  if (bar?.classList.contains('list-save-bar')) bar.remove();
+  card.remove();
+};
+
+window.expandQty = function(btn) {
+  const card = btn.closest('.list-card');
+  btn.style.display = 'none';
+  card.querySelector('.list-qty-ctrl').classList.add('show');
+  card.nextElementSibling?.classList.remove('hidden');
+};
+
+window.cancelQtyEdit = function(btn) {
+  const bar = btn.closest('.list-save-bar');
+  const card = bar.previousElementSibling;
+  card.querySelector('.qty-num').textContent = card.dataset.origQty;
+  card.querySelector('.list-qty-ctrl').classList.remove('show');
+  card.querySelector('.list-qty-add').style.display = '';
+  bar.classList.add('hidden');
+};
+
+window.saveQtyEdit = function(btn) {
+  const bar = btn.closest('.list-save-bar');
+  const card = bar.previousElementSibling;
+  const newQty = card.querySelector('.qty-num').textContent;
+  card.dataset.origQty = newQty;
+  card.querySelector('.list-qty-ctrl').classList.remove('show');
+  card.querySelector('.list-qty-add').style.display = '';
+  bar.classList.add('hidden');
+};
+
 window.changeQty = function(btn, d) {
-  const el = btn.closest('.list-controls').querySelector('.qty-num');
+  const el = btn.closest('.list-qty-ctrl').querySelector('.qty-num');
   el.textContent = Math.max(1, parseInt(el.textContent) + d);
+};
+
+window.pcardExpandQty = function(btn) {
+  const card = btn.closest('.pcard-h');
+  btn.style.display = 'none';
+  card.querySelector('.pcard-qty-ctrl').classList.add('show');
+  card.querySelector('.pcard-save-bar').classList.remove('hidden');
+};
+
+window.pcardCancelQty = function(btn) {
+  const card = btn.closest('.pcard-h');
+  card.querySelector('.pcard-qty-num').textContent = '1';
+  card.querySelector('.pcard-qty-ctrl').classList.remove('show');
+  card.querySelector('.pcard-add-btn').style.display = '';
+  card.querySelector('.pcard-save-bar').classList.add('hidden');
+};
+
+window.pcardSaveQty = function(btn) {
+  const card = btn.closest('.pcard-h');
+  card.querySelector('.pcard-qty-ctrl').classList.remove('show');
+  card.querySelector('.pcard-add-btn').style.display = '';
+  card.querySelector('.pcard-save-bar').classList.add('hidden');
+};
+
+window.pcardChangeQty = function(btn, d) {
+  const ctrl = btn.closest('.pcard-qty-ctrl');
+  const el = ctrl.querySelector('.pcard-qty-num');
+  const next = parseInt(el.textContent) + d;
+  if (next < 1) {
+    pcardCancelQty(btn);
+    return;
+  }
+  el.textContent = next;
 };
