@@ -940,7 +940,7 @@ body {
 
 /* ─── CUSTOM MAP MARKERS ─── */
 .m-pin {
-  width: 68px; height: 68px;
+  width: 48px; height: 48px;
   border-radius: 50%;
   transform: none;
   border: 2.5px solid #fff;
@@ -950,7 +950,7 @@ body {
 }
 .m-pin.has-logo { background: transparent; border: none; box-shadow: none; }
 .m-pin img {
-  width: 60px; height: 60px;
+  width: 38px; height: 38px;
   object-fit: contain;
   border-radius: 0;
   filter: drop-shadow(0 2px 6px rgba(0,0,0,0.25));
@@ -973,6 +973,7 @@ body {
 .m-tandt    { background: #C0392B; color: #fff; }
 .m-wholefoods { background: #00674B; color: #fff; }
 .m-walmart  { background: #0071CE; color: #fff; }
+.m-longos   { background: #6B2D8B; color: #fff; }
 .m-other    { background: #757575; color: #fff; }
 
 .m-user {

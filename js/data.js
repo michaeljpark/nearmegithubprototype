@@ -11,6 +11,7 @@ const CHAIN_CONFIG = {
   walmart:    { label: 'Walmart',     short: 'WALMART',   color: '#0071CE', bg: '#0071CE' },
   iga:        { label: 'IGA',         short: 'IGA',       color: '#E31837', bg: '#E31837' },
   foodbasics: { label: 'Food Basics', short: 'FB',        color: '#E53935', bg: '#E53935' },
+  longos:     { label: "Longo's",     short: "LONGO'S",   color: '#6B2D8B', bg: '#6B2D8B' },
   other:      { label: 'Grocery',     short: 'SHOP',      color: '#555',    bg: '#757575' },
 };
 
@@ -27,6 +28,7 @@ function detectChain(name = '', brand = '') {
   if (n.includes('walmart') || n.includes('wal-mart')) return 'walmart';
   if (n.includes('food basics'))                    return 'foodbasics';
   if (n.includes('iga'))                            return 'iga';
+  if (n.includes("longo's") || n.includes('longos')) return 'longos';
   return 'other';
 }
 
