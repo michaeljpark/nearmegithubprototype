@@ -509,36 +509,57 @@ function showStoreCard(store) {
 }
 
 function hideStoreCard() {
-  document.getElementById('store-card').classList.add('hidden');
+  const card = document.getElementById('store-card');
+  card.classList.add('hidden');
+  card.classList.remove('expanded');
+  card.scrollTop = 0;
   resetFrom3D();
 }
 
 function setupCardSwipe() {
   const card = document.getElementById('store-card');
   const handle = document.getElementById('card-handle');
-  let startY = 0, currentY = 0, dragging = false;
+  let startY = 0, deltaY = 0, dragging = false, startedExpanded = false;
 
   const onStart = (e) => {
+    // Only start a drag from the handle, or from anywhere when the card
+    // isn't scrolled — otherwise let inner scrolling work normally.
+    const fromHandle = e.target.closest('#card-handle');
+    if (!fromHandle && card.scrollTop > 0) return;
     dragging = true;
+    startedExpanded = card.classList.contains('expanded');
     startY = e.touches ? e.touches[0].clientY : e.clientY;
+    deltaY = 0;
     card.style.transition = 'none';
   };
   const onMove = (e) => {
     if (!dragging) return;
-    currentY = (e.touches ? e.touches[0].clientY : e.clientY) - startY;
-    if (currentY < 0) currentY = 0;
-    card.style.transform = `translateY(${currentY}px)`;
+    deltaY = (e.touches ? e.touches[0].clientY : e.clientY) - startY;
+    // Track downward drags as translateY (for dismiss); ignore upward visual drag.
+    if (startedExpanded) {
+      // when expanded, only react to downward drags for collapse
+      card.style.transform = `translateY(${Math.max(0, deltaY)}px)`;
+    } else {
+      // when collapsed, downward drags translate; upward drags do nothing visual
+      card.style.transform = `translateY(${Math.max(0, deltaY)}px)`;
+    }
   };
   const onEnd = () => {
     if (!dragging) return;
     dragging = false;
     card.style.transition = '';
-    if (currentY > 80) {
-      hideStoreCard();
+    card.style.transform = '';
+    const THRESHOLD = 60;
+    if (startedExpanded) {
+      // expanded → swipe down enough collapses; very large swipe dismisses
+      if (deltaY > 180) hideStoreCard();
+      else if (deltaY > THRESHOLD) card.classList.remove('expanded');
     } else {
-      card.style.transform = '';
+      // collapsed → swipe up enough expands; swipe down dismisses
+      if (deltaY < -THRESHOLD) card.classList.add('expanded');
+      else if (deltaY > 80) hideStoreCard();
     }
-    currentY = 0;
+    deltaY = 0;
   };
 
   card.addEventListener('touchstart', onStart, { passive: true });
@@ -547,6 +568,12 @@ function setupCardSwipe() {
   handle.addEventListener('mousedown', onStart);
   window.addEventListener('mousemove', onMove);
   window.addEventListener('mouseup', onEnd);
+
+  // Tap the handle to toggle expanded/collapsed (no swipe required)
+  handle.addEventListener('click', (e) => {
+    if (Math.abs(deltaY) > 5) return; // was a drag, not a tap
+    card.classList.toggle('expanded');
+  });
 }
 
 window.flyToStoreWith3D = flyToStoreWith3D;

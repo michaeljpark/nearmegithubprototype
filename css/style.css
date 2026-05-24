@@ -18,19 +18,25 @@
   .hero-loc    { display: none !important; }
   .hero-search { display: none !important; }
   .home-hero { background: none !important; padding: 0 !important; }
-  .home-hero .chip-row { background: var(--white); border-bottom: 1px solid var(--border); padding: 7px 16px; }
-  /* Promo cards: 1-up horizontal carousel */
+  .home-hero .chip-row { background: var(--white); border-bottom: 1px solid var(--border); padding: 10px 16px; }
+  /* Promo cards: 2-up horizontal carousel matching Figma desktop */
   .feat-scroll {
     display: flex;
     flex-direction: row;
     overflow-x: auto;
     scroll-snap-type: x mandatory;
     scroll-padding-inline: 16px;
-    padding: 16px;
+    padding: 14px 16px 18px;
     gap: 12px;
   }
-  .feat-card { width: calc(100% - 32px) !important; min-width: unset !important; aspect-ratio: 4 / 3; flex-shrink: 0; scroll-snap-align: start; }
+  .feat-card {
+    width: calc(50% - 6px) !important;
+    min-width: 0 !important;
+    flex-shrink: 0;
+    scroll-snap-align: start;
+  }
   .feat-card:nth-child(n+3) { display: flex; }
+  .feat-label { padding: 16px 20px 4px; }
 }
 
 .home-hero {
@@ -226,26 +232,9 @@
   padding: 14px 16px 8px;
 }
 
-/* ─── STORES STRIP (map overlay, desktop only) ─── */
-.stores-strip {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 20;
-  background: rgba(255,255,255,0.95);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--border);
-  padding: 8px 0 6px;
-}
-/* Push map-topbar below stores-strip on desktop */
-@media (min-width: 640px) {
-  .map-topbar { top: 93px; }
-}
-@media (max-width: 639px) {
-  .stores-strip { display: none; }
-  .map-topbar { top: 0; }
-}
+/* ─── STORES STRIP — hidden everywhere; logos now live inside panels ─── */
+.stores-strip { display: none; }
+.map-topbar { top: 0; }
 .stores-logos {
   display: flex;
   gap: 10px;
@@ -269,7 +258,7 @@ input  { font-family: inherit; outline: none; border: none; background: none; }
   --bg:       #F7F7F7;
   --white:    #FFFFFF;
   --header-h: 56px;
-  --panel-w:  360px;
+  --panel-w:  520px;
   --nav-h:    60px;
   --fill-0:   currentColor;
   --stroke-0: currentColor;
@@ -321,7 +310,7 @@ body {
   display: flex;
   align-items: center;
   gap: 5px;
-  padding: 6px 10px;
+  padding: 6px 12px;
   border: 1px solid var(--border);
   border-radius: 20px;
   font-size: 13px;
@@ -329,6 +318,8 @@ body {
   color: var(--text1);
   background: var(--bg);
   white-space: nowrap;
+  order: 2; /* push to right cluster on desktop (Figma layout) */
+  margin-left: auto;
 }
 .header-location:hover { background: #EEE; }
 
@@ -336,12 +327,14 @@ body {
   flex: 1;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   background: var(--bg);
   border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 8px 12px;
-  max-width: 480px;
+  border-radius: 100px;
+  padding: 9px 16px;
+  max-width: 640px;
+  margin: 0 auto;
+  order: 1;
 }
 .header-search input {
   flex: 1;
@@ -353,23 +346,26 @@ body {
 .header-nav {
   display: flex;
   gap: 4px;
-  margin-left: auto;
   flex-shrink: 0;
+  order: 3;
 }
 .hnav {
   display: flex;
   align-items: center;
-  gap: 5px;
-  padding: 7px 12px;
-  border-radius: 8px;
-  font-size: 13px;
+  justify-content: center;
+  gap: 0;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border-radius: 50%;
+  font-size: 0;
   font-weight: 500;
-  color: var(--text2);
+  color: var(--text1);
   transition: all 0.15s;
 }
-.hnav:hover { background: var(--bg); color: var(--text1); }
+.hnav:hover { background: var(--bg); }
 .hnav.active { background: var(--text1); color: var(--white); }
-.hnav svg { flex-shrink: 0; }
+.hnav svg { flex-shrink: 0; width: 19px; height: 19px; }
 
 /* ─── BODY ─── */
 .app-body {
@@ -378,17 +374,25 @@ body {
   overflow: hidden;
 }
 
+/* Desktop: map on LEFT, side panel on RIGHT (per Figma) */
+@media (min-width: 769px) {
+  .app-body { flex-direction: row-reverse; }
+}
+
 /* ─── SIDE PANEL ─── */
 .side-panel {
   width: var(--panel-w);
   flex-shrink: 0;
   background: var(--white);
-  border-right: 1px solid var(--border);
+  border-left: 1px solid var(--border);
   display: flex;
   flex-direction: column;
   overflow: hidden;
   position: relative;
   z-index: 100;
+}
+@media (max-width: 768px) {
+  .side-panel { border-left: none; }
 }
 
 .pview {
@@ -921,9 +925,10 @@ body {
 .profile-av {
   width: 70px; height: 70px;
   border-radius: 50%;
-  background: #E0E0E0;
+  background: #EFEFEF;
   display: flex; align-items: center; justify-content: center;
   font-size: 24px; font-weight: 700; color: var(--text2);
+  overflow: hidden;
 }
 .profile-name { font-size: 20px; font-weight: 700; }
 .profile-loc { display: flex; align-items: center; gap: 4px; font-size: 13px; color: var(--text2); }
@@ -944,19 +949,31 @@ body {
 }
 .pbtn:hover { background: var(--bg); border-color: var(--text2); }
 
-.pmenu { background: var(--white); }
+.pmenu { background: var(--white); padding: 8px 0; }
 .pm-item {
   display: flex;
   align-items: center;
-  gap: 13px;
-  padding: 15px 18px;
-  border-bottom: 1px solid var(--border);
+  gap: 14px;
+  padding: 14px 20px;
   font-size: 14px;
   cursor: pointer;
   transition: background 0.1s;
+  border-bottom: none;
 }
 .pm-item:hover { background: var(--bg); }
 .pm-item span { flex: 1; }
+/* Hide trailing chevron — Figma profile (Desktop-4) has no arrows */
+.pm-item > svg:last-child { display: none; }
+
+.psignout {
+  display: block;
+  padding: 28px 20px 20px;
+  font-size: 14px;
+  color: var(--text1);
+  cursor: pointer;
+  background: none;
+}
+.psignout:hover { color: var(--red); }
 
 /* ─── MAP SECTION ─── */
 .map-wrap {
@@ -1026,9 +1043,21 @@ body {
   padding: 16px;
   z-index: 20;
   box-shadow: 0 -4px 24px rgba(0,0,0,0.12);
-  transition: transform 0.28s cubic-bezier(0.4,0,0.2,1), opacity 0.25s ease;
+  transition: transform 0.28s cubic-bezier(0.4,0,0.2,1), max-height 0.28s cubic-bezier(0.4,0,0.2,1), opacity 0.25s ease;
+  max-height: 50vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
+.store-card::-webkit-scrollbar { width: 0; }
 .store-card.hidden { transform: translateY(100%); }
+/* Mobile: swipe up to expand to near-fullscreen sheet */
+@media (max-width: 768px) {
+  .store-card.expanded {
+    max-height: calc(100vh - var(--header-h) - var(--nav-h) - 8px);
+    border-radius: 20px 20px 0 0;
+  }
+  .store-card.expanded .card-handle-bar { background: #BBB; }
+}
 
 /* Desktop: full-width bottom bar */
 @media (min-width: 640px) {
@@ -1097,7 +1126,7 @@ body {
 }
 .card-logo.metro    { color: #E31837; }
 .card-logo.loblaws  { color: #1B5E20; }
-.card-logo.nofrills { color: #000; background: #FFD600; }
+.card-logo.nofrills { color: #000; }
 .card-logo.sobeys   { color: #D62828; }
 .card-logo.farmboy  { color: #2E7D32; }
 .card-logo.freshco  { color: #E53935; }
