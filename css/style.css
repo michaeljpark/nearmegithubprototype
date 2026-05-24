@@ -47,7 +47,7 @@
   gap: 7px;
   font-size: 16px;
   font-weight: 700;
-  color: #fff;
+  color: #000;
   margin-bottom: 14px;
   letter-spacing: -0.2px;
 }
@@ -892,9 +892,36 @@ body {
   padding: 16px;
   z-index: 20;
   box-shadow: 0 -4px 24px rgba(0,0,0,0.12);
-  transition: transform 0.28s cubic-bezier(0.4,0,0.2,1);
+  transition: transform 0.28s cubic-bezier(0.4,0,0.2,1), opacity 0.25s ease;
 }
 .store-card.hidden { transform: translateY(100%); }
+
+/* Desktop: floating card bottom-left */
+@media (min-width: 640px) {
+  .store-card {
+    bottom: 24px;
+    left: 24px;
+    right: auto;
+    width: 340px;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+    transform: translateY(16px);
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 0.25s cubic-bezier(0.4,0,0.2,1), opacity 0.25s ease;
+  }
+  .store-card:not(.hidden) {
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .store-card.hidden {
+    transform: translateY(16px);
+    opacity: 0;
+    pointer-events: none;
+  }
+  .card-handle { display: none; }
+}
 
 .card-handle {
   display: flex;
@@ -947,9 +974,9 @@ body {
 
 .card-info { flex: 1; }
 .card-name { font-size: 14px; font-weight: 700; }
-.card-addr { font-size: 12px; color: var(--text2); margin-top: 1px; }
-.card-hours { font-size: 11px; color: var(--text3); }
-.card-dist { font-size: 11px; color: var(--text3); }
+.card-addr { font-size: 12px; color: var(--text1); margin-top: 1px; }
+.card-hours { font-size: 11px; color: var(--text2); }
+.card-dist { font-size: 11px; color: var(--text2); }
 
 .card-actions { display: flex; gap: 8px; margin-left: auto; }
 .card-see-all {
@@ -1019,7 +1046,7 @@ body {
 }
 .m-metro    { background: #E31837; color: #fff; }
 .m-loblaws  { background: #1B5E20; color: #fff; }
-.m-nofrills { background: #FFD600; color: #000; }
+.m-nofrills { background: transparent; color: #000; }
 .m-sobeys   { background: #D62828; color: #fff; }
 .m-farmboy  { background: #2E7D32; color: #fff; }
 .m-freshco  { background: #E53935; color: #fff; }

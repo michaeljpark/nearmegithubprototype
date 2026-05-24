@@ -2,10 +2,10 @@
 const CHAIN_CONFIG = {
   metro:      { label: 'metro',       short: 'METRO',     color: '#DA291C', bg: '#DA291C' },
   loblaws:    { label: 'loblaws',     short: 'LOBLAWS',   color: '#1B5E20', bg: '#1B5E20' },
-  nofrills:   { label: 'NO FRILLS',   short: 'NO FRILLS', color: '#DA291C', bg: '#DA291C' },
+  nofrills:   { label: 'NO FRILLS',   short: 'NO FRILLS', color: '#000',    bg: '#FFD600' },
   sobeys:     { label: 'sobeys',      short: 'SOBEYS',    color: '#D62828', bg: '#D62828' },
   farmboy:    { label: 'Farm Boy',    short: 'FARM BOY',  color: '#000',    bg: '#000'    },
-  freshco:    { label: 'FreshCo',     short: 'FRESHCO',   color: '#E53935', bg: '#E53935' },
+  freshco:    { label: 'FreshCo',     short: 'FRESHCO',   color: '#BFD730', bg: '#BFD730' },
   tandt:      { label: 'T&T',         short: 'T&T',       color: '#007953', bg: '#007953' },
   wholefoods: { label: 'Whole Foods', short: 'WF',        color: '#00674B', bg: '#00674B' },
   walmart:    { label: 'Walmart',     short: 'WALMART',   color: '#0071CE', bg: '#0071CE' },

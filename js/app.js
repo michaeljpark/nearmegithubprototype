@@ -282,12 +282,22 @@ function makeCirclePoly([lng, lat], radiusM) {
 /* ─── USER GEOLOCATION (single marker) ─── */
 function tryGeolocation() {
   if (!navigator.geolocation) return;
-  navigator.geolocation.getCurrentPosition(pos => {
+  navigator.geolocation.getCurrentPosition(async pos => {
     userLngLat = [pos.coords.longitude, pos.coords.latitude];
     setUserMarker(userLngLat);
-    document.getElementById('location-text').textContent = 'My Location';
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&format=json`,
+        { headers: { 'Accept-Language': 'en' } }
+      );
+      const data = await res.json();
+      const addr = data.address || {};
+      const label = addr.postcode || addr.neighbourhood || addr.suburb || addr.city_district || 'My Location';
+      document.querySelectorAll('#location-text').forEach(el => el.textContent = label);
+    } catch {
+      document.querySelectorAll('#location-text').forEach(el => el.textContent = 'My Location');
+    }
   }, () => {
-    // denied – place indicator at default Toronto center
     setUserMarker(CENTER);
   });
 }
@@ -354,8 +364,9 @@ const FALLBACK_STORES = [
   // ── T&T Supermarket (confirmed: College St, Edward St) ──
   { type:'node', id:12, lat:43.6567, lon:-79.4005, tags:{ name:'T&T Supermarket', shop:'supermarket', 'addr:housenumber':'297', 'addr:street':'College St' }},
   { type:'node', id:13, lat:43.6569, lon:-79.3824, tags:{ name:'T&T Supermarket', shop:'supermarket', 'addr:housenumber':'26',  'addr:street':'Edward St' }},
-  // ── FreshCo (near-place.com confirmed coordinates) ──
+  // ── FreshCo (freshco.com confirmed) ──
   { type:'node', id:14, lat:43.6597, lon:-79.3656, tags:{ name:'FreshCo',         shop:'supermarket', 'addr:housenumber':'325', 'addr:street':'Parliament St' }},
+  { type:'node', id:15, lat:43.6542, lon:-79.4070, tags:{ name:'FreshCo',         shop:'supermarket', 'addr:housenumber':'410', 'addr:street':'Bathurst St' }},
 ];
 
 function processOSMStores(elements) {
@@ -476,7 +487,7 @@ function showStoreCard(store) {
   ` : '';
 
   const logoSrc = CHAIN_LOGOS1[store.chain];
-  const btnTextColor = '#fff';
+  const btnTextColor = (store.chain === 'freshco' || store.chain === 'nofrills') ? '#000' : '#fff';
 
   document.getElementById('card-body').innerHTML = `
     <div class="card-main">
