@@ -82,6 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setupNavigation();
   setupSearch();
   setupListPage();
+  setupCardSwipe();
   renderHomeProducts('favourite');
   document.getElementById('list-date').textContent =
     new Date().toLocaleDateString('en-CA', { year: 'numeric', month: 'numeric', day: 'numeric' });
@@ -155,7 +156,6 @@ function initMap() {
     if (!e.originalEvent.target.closest('.m-pin')) hideStoreCard();
   });
 
-  document.getElementById('card-close').addEventListener('click', hideStoreCard);
 }
 
 /* ─── 4km RADIUS RING ─── */
@@ -476,7 +476,7 @@ function showStoreCard(store) {
   ` : '';
 
   const logoSrc = CHAIN_LOGOS1[store.chain];
-  const btnTextColor = store.chain === 'nofrills' ? '#000' : '#fff';
+  const btnTextColor = '#fff';
 
   document.getElementById('card-body').innerHTML = `
     <div class="card-main">
@@ -501,6 +501,43 @@ function hideStoreCard() {
   document.getElementById('store-card').classList.add('hidden');
   resetFrom3D();
 }
+
+function setupCardSwipe() {
+  const card = document.getElementById('store-card');
+  const handle = document.getElementById('card-handle');
+  let startY = 0, currentY = 0, dragging = false;
+
+  const onStart = (e) => {
+    dragging = true;
+    startY = e.touches ? e.touches[0].clientY : e.clientY;
+    card.style.transition = 'none';
+  };
+  const onMove = (e) => {
+    if (!dragging) return;
+    currentY = (e.touches ? e.touches[0].clientY : e.clientY) - startY;
+    if (currentY < 0) currentY = 0;
+    card.style.transform = `translateY(${currentY}px)`;
+  };
+  const onEnd = () => {
+    if (!dragging) return;
+    dragging = false;
+    card.style.transition = '';
+    if (currentY > 80) {
+      hideStoreCard();
+    } else {
+      card.style.transform = '';
+    }
+    currentY = 0;
+  };
+
+  handle.addEventListener('touchstart', onStart, { passive: true });
+  handle.addEventListener('touchmove', onMove, { passive: true });
+  handle.addEventListener('touchend', onEnd);
+  handle.addEventListener('mousedown', onStart);
+  window.addEventListener('mousemove', onMove);
+  window.addEventListener('mouseup', onEnd);
+}
+
 window.flyToStoreWith3D = flyToStoreWith3D;
 
 /* ═════════════════════════════════════════════

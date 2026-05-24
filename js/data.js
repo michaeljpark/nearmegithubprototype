@@ -1,17 +1,17 @@
 // ─── CHAIN CONFIG (used for classification of Overpass API results) ───
 const CHAIN_CONFIG = {
-  metro:      { label: 'metro',       short: 'METRO',     color: '#E31837', bg: '#E31837' },
+  metro:      { label: 'metro',       short: 'METRO',     color: '#DA291C', bg: '#DA291C' },
   loblaws:    { label: 'loblaws',     short: 'LOBLAWS',   color: '#1B5E20', bg: '#1B5E20' },
-  nofrills:   { label: 'NO FRILLS',   short: 'NO FRILLS', color: '#000',    bg: '#FFD600' },
+  nofrills:   { label: 'NO FRILLS',   short: 'NO FRILLS', color: '#DA291C', bg: '#DA291C' },
   sobeys:     { label: 'sobeys',      short: 'SOBEYS',    color: '#D62828', bg: '#D62828' },
-  farmboy:    { label: 'Farm Boy',    short: 'FARM BOY',  color: '#2E7D32', bg: '#2E7D32' },
+  farmboy:    { label: 'Farm Boy',    short: 'FARM BOY',  color: '#000',    bg: '#000'    },
   freshco:    { label: 'FreshCo',     short: 'FRESHCO',   color: '#E53935', bg: '#E53935' },
-  tandt:      { label: 'T&T',         short: 'T&T',       color: '#C0392B', bg: '#C0392B' },
+  tandt:      { label: 'T&T',         short: 'T&T',       color: '#007953', bg: '#007953' },
   wholefoods: { label: 'Whole Foods', short: 'WF',        color: '#00674B', bg: '#00674B' },
   walmart:    { label: 'Walmart',     short: 'WALMART',   color: '#0071CE', bg: '#0071CE' },
   iga:        { label: 'IGA',         short: 'IGA',       color: '#E31837', bg: '#E31837' },
   foodbasics: { label: 'Food Basics', short: 'FB',        color: '#E53935', bg: '#E53935' },
-  longos:     { label: "Longo's",     short: "LONGO'S",   color: '#6B2D8B', bg: '#6B2D8B' },
+  longos:     { label: "Longo's",     short: "LONGO'S",   color: '#DA291C', bg: '#DA291C' },
   other:      { label: 'Grocery',     short: 'SHOP',      color: '#555',    bg: '#757575' },
 };
 

@@ -896,6 +896,18 @@ body {
 }
 .store-card.hidden { transform: translateY(100%); }
 
+.card-handle {
+  display: flex;
+  justify-content: center;
+  padding: 10px 0 4px;
+  cursor: grab;
+}
+.card-handle-bar {
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: #D0D0D0;
+}
 .card-close {
   position: absolute;
   top: 14px; right: 14px;
