@@ -18,7 +18,15 @@
       "Bash(\"/c/Program Files/Google/Chrome/Application/chrome.exe\" --headless=new --disable-gpu --hide-scrollbars --virtual-time-budget=1500 --window-size=400,900 --screenshot=\"C:/Users/joong/Desktop/nearmeweb/nearmegithubprototype/_scard.png\" \"http://127.0.0.1:5173/_storecard_test.html\")",
       "Bash(kill 36)",
       "Bash(ls \"C:\\\\Users\\\\joong\\\\.claude\\\\projects\\\\c--Users-joong-Desktop-nearmeweb-nearmegithubprototype\\\\memory\\\\\" 2>&1 | head -20)",
-      "Read(//c/Users/joong/.claude/projects/c--Users-joong-Desktop-nearmeweb-nearmegithubprototype/**)"
+      "Read(//c/Users/joong/.claude/projects/c--Users-joong-Desktop-nearmeweb-nearmegithubprototype/**)",
+      "Bash(node -c \"c:\\\\Users\\\\joong\\\\Desktop\\\\nearmeweb\\\\nearmegithubprototype\\\\js\\\\app.js\")",
+      "Bash(python -m http.server 8765)",
+      "Bash(node -e \"console.log\\('Node ' + process.version\\); try { require\\('puppeteer'\\); console.log\\('puppeteer: yes'\\); } catch\\(e\\) { console.log\\('puppeteer: no'\\); } try { require\\('playwright'\\); console.log\\('playwright: yes'\\); } catch\\(e\\) { console.log\\('playwright: no'\\); }\")",
+      "Bash(npm root *)",
+      "Bash(npm list *)",
+      "Bash(npm init *)",
+      "Bash(npm install *)",
+      "Bash(node _debug_markers.js)"
     ]
   }
 }

@@ -991,7 +991,7 @@ body {
   padding: 10px 12px 12px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
   flex: 1;
 }
 .lpcard-name {
@@ -1004,12 +1004,141 @@ body {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+.lpcard-price-row {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
 .lpcard-price {
   font-size: 15px;
   font-weight: 800;
   color: var(--text1);
-  margin-top: auto;
 }
+
+/* qty +/- controls — hidden until + clicked */
+.lpcard-qty-ctrl {
+  display: none;
+  align-items: center;
+  gap: 8px;
+}
+.lpcard-qty-ctrl.show { display: flex; }
+.lpcard-qty-btn {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  border: 1.5px solid #C8C8C8;
+  background: #fff;
+  font-size: 13px;
+  color: #555;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0;
+}
+.lpcard-qty-btn:hover { border-color: #1A1A1A; color: #1A1A1A; }
+.lpcard-qty-num {
+  font-size: 14px;
+  font-weight: 700;
+  min-width: 12px;
+  text-align: center;
+}
+
+/* save/cancel bar inside the lpcard */
+.lpcard-save-bar {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  padding: 0 10px 10px;
+}
+.lpcard-save-bar.hidden { display: none; }
+
+/* shared cancel/save pill buttons used by both home pcards and list lpcards */
+.list-pill-cancel {
+  padding: 7px 16px;
+  border-radius: 18px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1.5px solid #DDD;
+  background: #fff;
+  color: #555;
+}
+.list-pill-cancel:hover { background: var(--bg); }
+.list-pill-save {
+  padding: 7px 18px;
+  border-radius: 18px;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--text1);
+  color: #fff;
+  border: none;
+}
+.list-pill-save:hover { background: #000; }
+.pcard-save-bar {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  padding: 8px 12px 10px;
+  border-top: 1px solid var(--border);
+}
+.pcard-save-bar.hidden { display: none; }
+
+/* ─── REMOVE CONFIRMATION MODAL ─── */
+.ll-confirm-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.ll-confirm-modal.show { display: flex; }
+.ll-confirm-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  backdrop-filter: blur(2px);
+}
+.ll-confirm-box {
+  position: relative;
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px 22px 16px;
+  width: 100%;
+  max-width: 320px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+}
+.ll-confirm-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text1);
+  text-align: center;
+  line-height: 1.4;
+  padding: 6px 4px 18px;
+}
+.ll-confirm-actions {
+  display: flex;
+  gap: 10px;
+}
+.ll-confirm-no, .ll-confirm-yes {
+  flex: 1;
+  padding: 11px 0;
+  border-radius: 22px;
+  font-size: 14px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+}
+.ll-confirm-no {
+  background: #fff;
+  color: #555;
+  border: 1.5px solid #DDD;
+}
+.ll-confirm-no:hover { background: #F5F5F5; }
+.ll-confirm-yes {
+  background: var(--red);
+  color: #fff;
+}
+.ll-confirm-yes:hover { background: #b3142b; }
 
 /* ─── PROFILE ─── */
 .profile-hero {
@@ -1114,7 +1243,8 @@ body {
 }
 #map-status { font-size: 11px; color: var(--text3); }
 
-.ctrl-3d-btn {
+.ctrl-3d-btn,
+.ctrl-locate-btn {
   width: 29px;
   height: 29px;
   display: flex;
@@ -1124,7 +1254,12 @@ body {
   background: var(--white);
   transition: all 0.15s;
 }
-.ctrl-3d-btn:hover { background: #f0f0f0; }
+.ctrl-3d-btn:hover,
+.ctrl-locate-btn:hover { background: #f0f0f0; }
+.ctrl-locate-btn:disabled {
+  color: var(--text3);
+  cursor: wait;
+}
 .ctrl-3d-btn.active { background: var(--text1); color: var(--white); }
 
 #map {
@@ -1143,12 +1278,30 @@ body {
   box-shadow: 0 -4px 24px rgba(0,0,0,0.12);
   transition: transform 0.28s cubic-bezier(0.4,0,0.2,1), max-height 0.28s cubic-bezier(0.4,0,0.2,1);
   max-height: 38vh;
+  /* Card itself never scrolls — handle/top/info stay locked; only .sc-items scrolls */
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  touch-action: pan-y;
+}
+.store-card #card-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.store-card .sc-top,
+.store-card .sc-info { flex-shrink: 0; }
+.store-card .sc-items {
+  flex: 1 1 auto;
+  min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
-  touch-action: pan-y;
+  padding-bottom: 24px;
 }
-.store-card::-webkit-scrollbar { width: 0; }
+.store-card .sc-items::-webkit-scrollbar { width: 0; }
 .store-card.hidden { transform: translateY(100%); }
 
 /* Mobile: swipe up to expand to near-fullscreen sheet */
@@ -1156,31 +1309,7 @@ body {
   .store-card.expanded {
     max-height: calc(100vh - var(--header-h) - var(--nav-h) - 8px);
     z-index: 60; /* above mobile-map-hero search/chips */
-    /* Switch to flex column: handle + top + info stay fixed; only .sc-items scrolls */
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
   }
-  .store-card.expanded #card-body {
-    flex: 1 1 auto;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-  .store-card.expanded .sc-top,
-  .store-card.expanded .sc-info {
-    flex-shrink: 0;
-  }
-  .store-card.expanded .sc-items {
-    flex: 1 1 auto;
-    min-height: 0;
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    -webkit-overflow-scrolling: touch;
-    padding-bottom: 24px;
-  }
-  .store-card.expanded .sc-items::-webkit-scrollbar { width: 0; }
   .store-card.expanded .card-handle-bar { background: #BBB; }
   /* When the sheet is expanded, fade out the floating search/chips overlay */
   .map-wrap:has(.store-card.expanded) .mobile-map-hero {
@@ -1438,11 +1567,35 @@ body {
 .m-pin {
   width: 48px; height: 48px;
   border-radius: 50%;
-  transform: none;
   border: 2.5px solid #fff;
   box-shadow: 0 2px 8px rgba(0,0,0,0.30);
   display: flex; align-items: center; justify-content: center;
   cursor: pointer;
+  position: relative;
+}
+
+/* Deal count badge — small red circle, BIG bold number, no white border */
+.m-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  transform: translate(35%, -35%);
+  min-width: 22px;
+  height: 22px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: #F90000;
+  color: #fff;
+  font-family: 'Poppins', -apple-system, sans-serif;
+  font-weight: 800;
+  font-size: 14px;
+  line-height: 1;
+  letter-spacing: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  pointer-events: none;
 }
 .m-pin.has-logo { background: transparent; border: none; box-shadow: none; }
 .m-pin img {
@@ -1457,7 +1610,7 @@ body {
   font-weight: 800;
   text-align: center;
   line-height: 1.1;
-  letter-spacing: -0.2px;
+  letter-spacing: 0;
   color: inherit;
 }
 .m-metro    { background: #E31837; color: #fff; }

@@ -31,6 +31,15 @@ let stores3D = null;              // loaded OSM stores
 let activeChainFilter = 'all';
 let is3D = false;
 let ctrl3DRef = null;             // reference to the 3D map control
+const loadingStoreLogoImages = new Set();
+let storeMarkerLayersReady = false;
+
+const STORE_SOURCE_ID = 'store-markers-source';
+const STORE_DOT_LAYER_ID = 'store-marker-dot';
+const STORE_ICON_LAYER_PREFIX = 'store-marker-icon';
+const STORE_LABEL_LAYER_ID = 'store-marker-label';
+const STORE_BADGE_LAYER_ID = 'store-marker-badge';
+const STORE_BADGE_TEXT_LAYER_ID = 'store-marker-badge-text';
 
 /* ─── CUSTOM 3D MAP CONTROL ─── */
 class Toggle3DControl {
@@ -152,7 +161,16 @@ function initMap() {
 
   // close store card when clicking elsewhere on map
   map.on('click', (e) => {
-    if (!e.originalEvent.target.closest('.m-pin')) hideStoreCard();
+    const layerIds = [
+      STORE_DOT_LAYER_ID,
+      ...storeIconLayerIds(),
+      STORE_LABEL_LAYER_ID,
+      STORE_BADGE_LAYER_ID,
+      STORE_BADGE_TEXT_LAYER_ID,
+    ].filter(id => map.getLayer(id));
+    const hit = layerIds.length > 0 &&
+      map.queryRenderedFeatures(e.point, { layers: layerIds }).length > 0;
+    if (!hit) hideStoreCard();
   });
 
 }
@@ -421,27 +439,231 @@ function haversineKm([lng1, lat1], [lng2, lat2]) {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
 
-/* ─── STORE MARKERS ─── */
+/* ─── STORE MARKERS (HTML overlay: indicator dot + PNG logo on top) ─── */
+function dealCountForStore(store) {
+  const seen = new Set();
+  let count = 0;
+  Object.values(PRODUCTS).flat().forEach(p => {
+    if (p.chain === store.chain && p.salePercent && !seen.has(p.id)) {
+      seen.add(p.id);
+      count++;
+    }
+  });
+  if (count > 0) return count;
+  const seed = Math.abs(Math.floor(store.lng * 1000) + Math.floor(store.lat * 1000));
+  return 5 + (seed % 26);
+}
+
 function addStoreMarkers(stores) {
-  stores.filter(s => s.chain !== 'wholefoods').forEach(store => {
-    const el = document.createElement('div');
-    const logoSrc = CHAIN_LOGOS[store.chain];
-    el.className = 'm-pin m-' + store.chain + (logoSrc ? ' has-logo' : '');
+  ensureStoreMarkerLayers();
+  setStoreMarkerData(stores);
+  loadStoreLogoImages().then(() => {
+    addMissingStoreIconLayers();
+    setStoreMarkerData(stores);
+    filterMapMarkers();
+  });
+}
+
+function setStoreMarkerData(stores) {
+  const source = map.getSource(STORE_SOURCE_ID);
+  if (!source) return;
+
+  const features = stores.filter(s => s.chain !== 'wholefoods').map(store => {
     const cfg = CHAIN_CONFIG[store.chain] || CHAIN_CONFIG.other;
-    el.innerHTML = logoSrc
-      ? `<img src="${logoSrc}" alt="${cfg.short}">`
-      : `<span>${cfg.short.slice(0,6)}</span>`;
-    el.title = store.name;
+    const count = dealCountForStore(store);
+    const candidateLogoId = storeLogoImageId(store.chain);
+    const logoId = CHAIN_LOGOS[store.chain] && map.hasImage(candidateLogoId) ? candidateLogoId : '';
+    return {
+      type: 'Feature',
+      properties: {
+        id: String(store.id),
+        chain: store.chain,
+        short: cfg.short.slice(0, 6),
+        count: String(count),
+        hasLogo: Boolean(logoId),
+      },
+      geometry: { type: 'Point', coordinates: [store.lng, store.lat] },
+    };
+  });
 
-    const marker = new maplibregl.Marker({ element: el, anchor: 'center' })
-      .setLngLat([store.lng, store.lat])
-      .addTo(map);
+  source.setData({ type: 'FeatureCollection', features });
+  filterMapMarkers();
+}
 
-    el.addEventListener('click', (e) => {
-      e.stopPropagation();
-      showStoreCard(store);
-      flyToStoreWith3D([store.lng, store.lat]);
+function ensureStoreMarkerLayers() {
+  if (storeMarkerLayersReady || map.getSource(STORE_SOURCE_ID)) return;
+  addStoreMarkerLayers();
+  storeMarkerLayersReady = true;
+}
+
+function addStoreMarkerLayers() {
+  if (map.getSource(STORE_SOURCE_ID)) return;
+
+  map.addSource(STORE_SOURCE_ID, {
+    type: 'geojson',
+    data: { type: 'FeatureCollection', features: [] },
+  });
+
+  map.addLayer({
+    id: STORE_DOT_LAYER_ID,
+    type: 'circle',
+    source: STORE_SOURCE_ID,
+    paint: {
+      'circle-radius': ['interpolate', ['linear'], ['zoom'], 12, 13, 15, 19, 17, 23],
+      'circle-color': [
+        'match', ['get', 'chain'],
+        'metro', '#E31837',
+        'loblaws', '#1B5E20',
+        'nofrills', '#FFD600',
+        'farmboy', '#2E7D32',
+        'freshco', '#E53935',
+        'tandt', '#C0392B',
+        'longos', '#6B2D8B',
+        '#757575',
+      ],
+      'circle-stroke-color': '#FFFFFF',
+      'circle-stroke-width': 2.5,
+      'circle-pitch-alignment': 'viewport',
+    },
+  });
+
+  map.addLayer({
+    id: STORE_LABEL_LAYER_ID,
+    type: 'symbol',
+    source: STORE_SOURCE_ID,
+    layout: {
+      'text-field': ['get', 'short'],
+      'text-size': ['interpolate', ['linear'], ['zoom'], 12, 6, 15, 7.5, 17, 8],
+      'text-font': ['Noto Sans Bold'],
+      'text-allow-overlap': true,
+      'text-ignore-placement': true,
+    },
+    paint: {
+      'text-opacity': ['case', ['get', 'hasLogo'], 0, 1],
+      'text-color': [
+        'match', ['get', 'chain'],
+        'nofrills', '#000000',
+        '#FFFFFF',
+      ],
+    },
+  });
+
+  map.addLayer({
+    id: STORE_BADGE_LAYER_ID,
+    type: 'circle',
+    source: STORE_SOURCE_ID,
+    paint: {
+      'circle-radius': ['interpolate', ['linear'], ['zoom'], 12, 7, 15, 9, 17, 11],
+      'circle-color': '#F90000',
+      'circle-translate': [16, -16],
+      'circle-translate-anchor': 'viewport',
+      'circle-pitch-alignment': 'viewport',
+    },
+  });
+
+  map.addLayer({
+    id: STORE_BADGE_TEXT_LAYER_ID,
+    type: 'symbol',
+    source: STORE_SOURCE_ID,
+    layout: {
+      'text-field': ['get', 'count'],
+      'text-size': ['interpolate', ['linear'], ['zoom'], 12, 8, 15, 10, 17, 12],
+      'text-font': ['Noto Sans Bold'],
+      'text-offset': [0, 0],
+      'text-allow-overlap': true,
+      'text-ignore-placement': true,
+    },
+    paint: {
+      'text-color': '#FFFFFF',
+      'text-translate': [16, -16],
+      'text-translate-anchor': 'viewport',
+    },
+  });
+
+  addMissingStoreIconLayers();
+
+  const openStoreFromFeature = (e) => {
+    const id = e.features?.[0]?.properties?.id;
+    const store = stores3D?.find(s => String(s.id) === String(id));
+    if (!store) return;
+    showStoreCard(store);
+    flyToStoreWith3D([store.lng, store.lat]);
+  };
+
+  [
+    STORE_DOT_LAYER_ID,
+    ...storeIconLayerIds(),
+    STORE_LABEL_LAYER_ID,
+    STORE_BADGE_LAYER_ID,
+    STORE_BADGE_TEXT_LAYER_ID,
+  ].forEach(layerId => {
+    map.on('click', layerId, openStoreFromFeature);
+    map.on('mouseenter', layerId, () => { map.getCanvas().style.cursor = 'pointer'; });
+    map.on('mouseleave', layerId, () => { map.getCanvas().style.cursor = ''; });
+  });
+}
+
+function addMissingStoreIconLayers() {
+  Object.keys(CHAIN_LOGOS).forEach(chain => {
+    const layerId = storeIconLayerId(chain);
+    const imageId = storeLogoImageId(chain);
+    if (map.getLayer(layerId) || !map.getSource(STORE_SOURCE_ID) || !map.hasImage(imageId)) return;
+
+    // No beforeId → appended on TOP, so PNG sits over the dot indicator
+    map.addLayer({
+      id: layerId,
+      type: 'symbol',
+      source: STORE_SOURCE_ID,
+      filter: ['==', ['get', 'chain'], chain],
+      layout: {
+        'icon-image': imageId,
+        'icon-size': ['interpolate', ['linear'], ['zoom'], 12, 0.22, 15, 0.32, 17, 0.38],
+        'icon-allow-overlap': true,
+        'icon-ignore-placement': true,
+        'icon-rotation-alignment': 'viewport',
+        'icon-pitch-alignment': 'viewport',
+      },
     });
+  });
+}
+
+function storeLogoImageId(chain) {
+  return `store-logo-${chain}`;
+}
+
+function storeIconLayerId(chain) {
+  return `${STORE_ICON_LAYER_PREFIX}-${chain}`;
+}
+
+function storeIconLayerIds() {
+  return Object.keys(CHAIN_LOGOS).map(storeIconLayerId);
+}
+
+function loadStoreLogoImages() {
+  return Promise.all(
+    Object.entries(CHAIN_LOGOS).map(([chain, src]) =>
+      loadStoreLogoImage(storeLogoImageId(chain), src)
+    )
+  );
+}
+
+function loadStoreLogoImage(imageId, src) {
+  if (map.hasImage(imageId)) return Promise.resolve(true);
+  if (loadingStoreLogoImages.has(imageId)) return Promise.resolve(false);
+  loadingStoreLogoImages.add(imageId);
+
+  return new Promise(resolve => {
+    const image = new Image();
+    image.onload = () => {
+      loadingStoreLogoImages.delete(imageId);
+      if (!map.hasImage(imageId)) map.addImage(imageId, image);
+      resolve(true);
+    };
+    image.onerror = () => {
+      loadingStoreLogoImages.delete(imageId);
+      resolve(false);
+    };
+    image.src = src;
   });
 }
 
@@ -456,13 +678,27 @@ document.getElementById('map-chips').addEventListener('click', (e) => {
 });
 
 function filterMapMarkers() {
-  // Re-render markers (simpler than toggling visibility individually)
-  document.querySelectorAll('.m-pin').forEach(el => {
-    const chain = el.classList[1]?.replace('m-', '') || '';
-    const visible = activeChainFilter === 'all' ||
-      chain === activeChainFilter ||
-      (activeChainFilter === 'deals' && chain !== 'other');
-    el.style.display = visible ? '' : 'none';
+  if (!map?.getLayer(STORE_DOT_LAYER_ID)) return;
+  const chainFilter = activeChainFilter === 'all'
+    ? null
+    : activeChainFilter === 'deals'
+      ? ['!=', ['get', 'chain'], 'other']
+      : ['==', ['get', 'chain'], activeChainFilter];
+
+  [
+    STORE_DOT_LAYER_ID,
+    STORE_LABEL_LAYER_ID,
+    STORE_BADGE_LAYER_ID,
+    STORE_BADGE_TEXT_LAYER_ID,
+  ].forEach(layerId => {
+    if (map.getLayer(layerId)) map.setFilter(layerId, chainFilter);
+  });
+
+  Object.keys(CHAIN_LOGOS).forEach(chain => {
+    const layerId = storeIconLayerId(chain);
+    if (!map.getLayer(layerId)) return;
+    const iconFilter = ['==', ['get', 'chain'], chain];
+    map.setFilter(layerId, chainFilter ? ['all', iconFilter, chainFilter] : iconFilter);
   });
 }
 
@@ -943,17 +1179,59 @@ function renderLLSuggest() {
       <div class="lpcard">
         <div class="lpcard-img">
           <span class="lpcard-brand ${brandClass}${logo ? ' has-logo' : ''}">${brandInner}</span>
-          <button class="lpcard-add" aria-label="Add to list">+</button>
+          <button class="lpcard-add" aria-label="Add to list" onclick="lpcardExpand(this)">+</button>
           <span>${p.emoji}</span>
         </div>
         <div class="lpcard-body">
           <div class="lpcard-name">${p.name}</div>
-          <div class="lpcard-price">$${p.price.toFixed(2)}</div>
+          <div class="lpcard-price-row">
+            <div class="lpcard-price">$${p.price.toFixed(2)}</div>
+            <div class="lpcard-qty-ctrl">
+              <button class="lpcard-qty-btn" onclick="lpcardChangeQty(this,-1)">−</button>
+              <span class="lpcard-qty-num">1</span>
+              <button class="lpcard-qty-btn" onclick="lpcardChangeQty(this,1)">+</button>
+            </div>
+          </div>
+        </div>
+        <div class="lpcard-save-bar hidden">
+          <button class="list-pill-cancel" onclick="lpcardCancel(this)">Cancel</button>
+          <button class="list-pill-save" onclick="lpcardSave(this)">Save</button>
         </div>
       </div>
     `;
   }).join('');
 }
+
+/* ─── lpcard add/qty/save pattern (mirrors home pcard) ─── */
+window.lpcardExpand = function(btn) {
+  const card = btn.closest('.lpcard');
+  btn.style.display = 'none';
+  card.querySelector('.lpcard-qty-ctrl').classList.add('show');
+  card.querySelector('.lpcard-save-bar').classList.remove('hidden');
+};
+
+window.lpcardCancel = function(btn) {
+  const card = btn.closest('.lpcard');
+  card.querySelector('.lpcard-qty-num').textContent = '1';
+  card.querySelector('.lpcard-qty-ctrl').classList.remove('show');
+  card.querySelector('.lpcard-add').style.display = '';
+  card.querySelector('.lpcard-save-bar').classList.add('hidden');
+};
+
+window.lpcardSave = function(btn) {
+  const card = btn.closest('.lpcard');
+  card.querySelector('.lpcard-qty-ctrl').classList.remove('show');
+  card.querySelector('.lpcard-add').style.display = '';
+  card.querySelector('.lpcard-save-bar').classList.add('hidden');
+};
+
+window.lpcardChangeQty = function(btn, d) {
+  const card = btn.closest('.lpcard');
+  const el = card.querySelector('.lpcard-qty-num');
+  const next = parseInt(el.textContent) + d;
+  if (next < 1) { lpcardCancel(btn); return; }
+  el.textContent = next;
+};
 
 function updateLLSummary() {
   let total = 0, save = 0;
@@ -984,11 +1262,59 @@ window.llRemove = function(btn) {
 window.llChangeQty = function(btn, d) {
   const card = btn.closest('.lcard');
   const numEl = card.querySelector('.lcard-qty-num');
-  const next = Math.max(1, (parseInt(card.dataset.qty) || 1) + d);
+  const cur = parseInt(card.dataset.qty) || 1;
+  const next = cur + d;
+  if (next < 1) {
+    // Decrementing past 1 → ask before removing
+    showLLConfirm(card);
+    return;
+  }
   card.dataset.qty = next;
   numEl.textContent = next;
   updateLLSummary();
 };
+
+/* ─── REMOVE CONFIRMATION DIALOG ─── */
+let _llPendingRemove = null;
+
+function showLLConfirm(card) {
+  _llPendingRemove = card;
+  let modal = document.getElementById('ll-confirm-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'll-confirm-modal';
+    modal.className = 'll-confirm-modal';
+    modal.innerHTML = `
+      <div class="ll-confirm-backdrop"></div>
+      <div class="ll-confirm-box" role="dialog" aria-modal="true">
+        <div class="ll-confirm-title">Are you sure remove this item?</div>
+        <div class="ll-confirm-actions">
+          <button class="ll-confirm-no">No</button>
+          <button class="ll-confirm-yes">Yes</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+    modal.querySelector('.ll-confirm-backdrop').addEventListener('click', closeLLConfirm);
+    modal.querySelector('.ll-confirm-no').addEventListener('click', closeLLConfirm);
+    modal.querySelector('.ll-confirm-yes').addEventListener('click', confirmLLRemove);
+  }
+  modal.classList.add('show');
+}
+
+function closeLLConfirm() {
+  _llPendingRemove = null;
+  document.getElementById('ll-confirm-modal')?.classList.remove('show');
+}
+
+function confirmLLRemove() {
+  if (_llPendingRemove) {
+    _llPendingRemove.remove();
+    _llPendingRemove = null;
+    updateLLSummary();
+  }
+  document.getElementById('ll-confirm-modal')?.classList.remove('show');
+}
 
 window.pcardExpandQty = function(btn) {
   const card = btn.closest('.pcard-h');
